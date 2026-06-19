@@ -1,18 +1,32 @@
-# KAZM Website Design Principles & Creative Direction
+# CLAUDE.md
 
-## Project Overview
+# KAZM 106.5 FM & 780 AM
 
-KAZM 106.5 FM & 780 AM is not a startup, SaaS platform, podcast network, AI company, streaming service, or media-tech venture.
+# Website Design Principles & Creative Direction
 
-KAZM is a real terrestrial radio station serving Sedona, the Verde Valley, and Northern Arizona.
+## Mission
 
-The website should feel like a trusted local institution that has deep roots in the community while presenting itself with a modern, polished digital experience.
+KAZM is a locally owned terrestrial radio station serving Sedona, the Verde Valley, and Northern Arizona.
 
-The site exists to serve listeners first.
+The website exists to support listeners, strengthen community connections, and extend the station's role as a trusted local resource.
+
+This website is not a technology product.
+
+This website is not a startup.
+
+This website is not a SaaS application.
+
+This website is not an AI company.
+
+This website is not a media-tech platform.
+
+This website is the digital home of a real radio station.
+
+Every design, engineering, content, and product decision must reinforce that reality.
 
 ---
 
-# Brand Position
+# Core Identity
 
 ## Who We Are
 
@@ -20,59 +34,126 @@ Mellow Mountain Radio.
 
 The soundtrack of Sedona.
 
-A trusted source for local information, weather, community events, sports, and music.
+A trusted source for music, weather, local news, sports, community events, and public information.
 
-A station that feels local, familiar, welcoming, and authentic.
-
-## What We Are Not
-
-Do not design this site like:
-
-* A technology startup
-* A SaaS company
-* A cryptocurrency platform
-* An AI company
-* A corporate media conglomerate
-* A podcast marketplace
-* A dashboard application
-* A marketing agency
-
-Avoid all visual patterns associated with generic AI-generated websites.
+A station that feels welcoming, familiar, authentic, and deeply rooted in Northern Arizona.
 
 ---
 
-## Radio First Principle
+## What We Are Not
 
-Every page should reinforce that KAZM is actively broadcasting.
+Do not design, write, or position KAZM like:
 
-Users should always be able to:
+* A startup
+* A SaaS company
+* A cryptocurrency project
+* An AI company
+* A podcast network
+* A streaming platform
+* A dashboard application
+* A marketing agency
+* A venture-backed technology company
+* A corporate media conglomerate
 
-Listen Live
-View current programming
-See what's playing
-See upcoming shows
+Avoid all visual, content, and UX patterns commonly associated with generic AI-generated websites.
+
+---
+
+# Radio First Principle
 
 The radio signal is the product.
 
 Everything else supports the radio signal.
 
+Every page should reinforce that KAZM is actively broadcasting.
+
+Visitors should always be able to:
+
+* Listen Live
+* See what is currently playing
+* View upcoming programming
+* Access station schedules
+* Discover featured shows
+
+The station itself is the destination.
+
+The website exists to strengthen the relationship between listeners and the broadcast signal.
+
+---
+
+# Heritage
+
+KAZM should feel established.
+
+The station should project permanence, credibility, trust, and local relevance.
+
+Design choices should favor familiarity and confidence over novelty.
+
+The goal is not to appear new.
+
+The goal is to appear enduring.
+
+Visitors should feel:
+
+"We've known this station for years."
+
+Not:
+
+"This looks like a brand-new tech company."
+
+---
+
+# Brand Expression
+
+The KAZM logo is the primary visual anchor of the brand.
+
+The website should be designed around the logo rather than forcing the logo into a pre-built design system.
+
+The logo communicates:
+
+* Local identity
+* Radio heritage
+* Arizona character
+* Community connection
+* Stability
+* Trust
+
+Visual cues should be drawn from:
+
+* The mountain iconography
+* Red rock inspired accent colors
+* Deep Arizona sky blues
+* Heritage radio station aesthetics
+* Southwestern simplicity
+
+Do not overpower the logo with:
+
+* Massive hero graphics
+* Excessive visual effects
+* Startup gradients
+* Decorative motion
+* Competing visual identities
+
+The logo should feel like the natural center of the experience.
+
 ---
 
 # Core User Goals
 
-Every page should help visitors accomplish one of the following:
+Every page should help visitors accomplish one or more of the following:
 
 1. Listen Live
-2. View Programming Schedule
-3. Read Local News
-4. Check Weather
-5. View Sports Coverage
-6. Learn About the Station
-7. Contact the Station
-8. Advertise With KAZM
-9. Discover Community Events
+2. See What Is Playing
+3. View Programming Schedule
+4. Read Local News
+5. Check Weather
+6. View Sports Coverage
+7. Discover Community Events
+8. Learn About KAZM
+9. Contact The Station
+10. Advertise With KAZM
 
-If a design element does not support these goals, it should be removed.
+If a feature does not support one or more of these goals, it should be removed.
 
 ---
 
@@ -84,21 +165,35 @@ Visitors should immediately understand:
 
 "This is Sedona's radio station."
 
-The experience should feel personal and regional rather than corporate and anonymous.
+The experience should feel regional, personal, and community-focused.
+
+Never anonymous.
+
+Never corporate.
+
+Never generic.
+
+---
 
 ## Human Before Technology
 
 Technology should disappear into the background.
 
-The focus is:
+The focus should always remain on:
 
 * People
-* Community
 * Music
+* Community
+* Local businesses
+* Local events
 * Local information
-* Sedona
+* Northern Arizona
 
-Never make the technology itself the star.
+Technology exists only to deliver those experiences.
+
+Technology should never become the story.
+
+---
 
 ## Timeless Before Trendy
 
@@ -106,48 +201,79 @@ The site should still feel appropriate five years from now.
 
 Avoid:
 
-* Trend chasing
-* Excessive motion
-* Overly experimental layouts
-* Social-media-inspired gimmicks
+* Design fads
+* Excessive animation
+* Trend-driven layouts
+* Social media gimmicks
+* Startup visual language
+* Overly experimental interfaces
+
+Prioritize longevity over novelty.
 
 ---
 
-# Visual Inspiration
+# Audience Reality
 
-## Real-World Inspiration
+KAZM serves listeners of all ages.
 
-Combine elements from:
+Many regular listeners are:
 
-Public Radio:
+* Adults
+* Retirees
+* Longtime residents
+* Seasonal residents
+* Tourists
+* Travelers
+* RV visitors
 
-* NPR
-* KCRW
-* Arizona Public Media
+Design for clarity first.
 
-Local News:
+Favor:
 
-* Community newspapers
-* Regional publications
+* Large text
+* Strong contrast
+* Clear navigation
+* Obvious buttons
+* Predictable layouts
+* Accessible interfaces
 
-Tourism:
+Avoid:
 
-* Sedona destination guides
-* National park visitor centers
+* Hidden navigation
+* Tiny fonts
+* Clever UI tricks
+* Dense interfaces
+* Unnecessary complexity
 
-Hospitality:
-
-* Boutique Arizona resorts
-* Southwest luxury experiences
-
-Music:
-
-* Classic FM stations
-* Heritage radio brands
+Users should find the stream, weather, schedule, or station contact information within seconds.
 
 ---
 
-# Visual Mood
+# Mobile First Reality
+
+Many visitors access KAZM while:
+
+* Traveling
+* Driving
+* Visiting Sedona
+* Exploring Arizona
+* Attending community events
+
+Mobile usability is critical.
+
+Prioritize:
+
+* One-tap listening
+* One-tap weather access
+* One-tap contact information
+* Fast loading pages
+* Clear navigation
+
+Primary actions should never require multiple steps.
+
+---
+
+# Desired Emotional Response
 
 The website should feel:
 
@@ -155,18 +281,21 @@ The website should feel:
 * Relaxed
 * Trustworthy
 * Scenic
-* Authentic
-* Community-focused
 * Welcoming
+* Community-focused
+* Authentic
+* Arizona-inspired
 * Premium but approachable
 
-Not:
+The website should never feel:
 
+* Corporate
+* Sterile
+* Academic
+* Futuristic
+* Technical
 * Aggressive
 * Flashy
-* Futuristic
-* Overly corporate
-* Overly technical
 
 ---
 
@@ -174,68 +303,110 @@ Not:
 
 Sedona should be visible throughout the experience.
 
-Visual references may include:
+Inspiration should come from:
 
 * Red rock formations
-* Desert landscapes
-* Blue Arizona skies
 * Verde Valley scenery
-* Sunrises and sunsets
-* Local community imagery
+* Blue Arizona skies
+* Juniper forests
+* Local landmarks
+* Community gatherings
+* Arizona sunsets
+* Arizona sunrises
 
-Avoid cliché stock photography.
+The website should feel impossible to relocate.
 
-Use real imagery whenever possible.
+If the logo were removed, visitors should still recognize the experience as Sedona.
+
+However:
+
+Sedona supports the station.
+
+The station is the star.
+
+Do not build a tourism website that happens to contain a radio station.
+
+Build a radio station website that happens to live in one of the most beautiful places in America.
+
+---
+
+# Authenticity Standard
+
+Whenever possible use:
+
+* Real station photography
+* Real staff photography
+* Real local events
+* Real community imagery
+* Real sponsors
+* Real broadcast facilities
+* Real equipment
+* Real listener experiences
+
+Avoid:
+
+* Generic stock photography
+* AI-generated people
+* Fake testimonials
+* Invented stories
+* Artificial community content
+
+Authenticity always wins.
 
 ---
 
 # Color Philosophy
 
-Draw inspiration from:
+Color inspiration should come from:
 
 * Red Rock sandstone
-* Juniper trees
 * Desert earth
+* Juniper trees
+* Verde Valley vegetation
 * Arizona skies
-* Sunrise and sunset tones
+* Sunrise tones
+* Sunset tones
 
-The palette should feel natural and regional.
+Colors should support content.
+
+Colors should never dominate content.
 
 Avoid:
 
-* Neon gradients
-* Cyberpunk colors
-* Purple startup palettes
-* Bright AI-company aesthetics
-
-Colors should support content, not dominate it.
+* Neon palettes
+* Startup gradients
+* Cyberpunk aesthetics
+* Purple AI branding
+* Trend-driven color systems
 
 ---
 
 # Typography
 
-Typography should prioritize readability.
+Typography must prioritize readability.
 
-Goals:
+Requirements:
 
 * Large headlines
 * Clear hierarchy
 * Comfortable reading
 * Accessible sizing
+* Strong contrast
 
 Avoid:
 
-* Ultra-condensed fonts
-* Overly futuristic fonts
+* Condensed fonts
+* Futuristic fonts
 * Decorative novelty fonts
+* Low-contrast typography
 
-The station should feel established and credible.
+The station should feel credible, trustworthy, and established.
 
 ---
 
 # Homepage Philosophy
 
-The homepage is a front porch.
+The homepage is the front porch of the station.
 
 Visitors should immediately see:
 
@@ -251,6 +422,8 @@ The homepage should answer:
 
 "What is happening in Sedona right now?"
 
+No unnecessary marketing content should appear before these items.
+
 ---
 
 # Content Hierarchy
@@ -258,96 +431,133 @@ The homepage should answer:
 Priority Order:
 
 1. Listen Live
-2. Local News
-3. Weather
-4. Community Information
-5. Programming Schedule
-6. Sports
-7. Advertising
-8. About KAZM
+2. What's Playing
+3. Local News
+4. Weather
+5. Community Information
+6. Programming Schedule
+7. Sports
+8. Events
+9. Advertising
+10. About KAZM
 
 Everything else is secondary.
 
 ---
 
-# Advertising Section
+# Public Service Responsibility
 
-Advertising should feel consultative rather than sales-driven.
+KAZM serves as a community information resource.
 
-Tone:
+The website must support rapid promotion of:
+
+* Emergency alerts
+* Wildfire information
+* Road closures
+* Severe weather advisories
+* Public safety information
+* Community notices
+
+Critical public information must be able to override normal content when necessary.
+
+Public service comes before promotion.
+
+---
+
+# Weather Philosophy
+
+Weather is a primary service.
+
+Many visitors will arrive specifically to check:
+
+* Current conditions
+* Forecasts
+* Heat information
+* Travel conditions
+* Weather advisories
+
+Weather should always be easy to find.
+
+---
+
+# Sports Philosophy
+
+Sports should reinforce KAZM's regional identity.
+
+Coverage may include:
+
+* Arizona Cardinals
+* Arizona Diamondbacks
+* Phoenix Suns
+* Arizona State Athletics
+* Northern Arizona University Athletics
+* Local high school sports
+
+Sports should feel community-focused rather than national.
+
+---
+
+# Advertising Philosophy
+
+Advertisers are community partners.
+
+Advertising should feel relevant, local, and integrated.
+
+Prioritize:
+
+* Local businesses
+* Regional sponsors
+* Community organizations
+* Event partnerships
+
+Avoid:
+
+* Aggressive sales language
+* Corporate marketing jargon
+* Generic advertising templates
+
+Preferred tone:
 
 "Reach local listeners."
 
 Not:
 
-"Maximize your revenue with innovative advertising solutions."
-
-Use plain language.
-
-Focus on community relationships.
+"Maximize your revenue through innovative audience engagement solutions."
 
 ---
 
-# Sports Coverage
+# Accessibility Requirements
 
-Sports should feel regional and community-focused.
+Accessibility is mandatory.
 
-Highlight:
+Requirements:
 
-* Arizona Cardinals
-* Arizona Diamondbacks
-* Phoenix Suns
-* ASU Athletics
-* NAU Athletics
-* Local high school sports
+* WCAG compliance
+* Keyboard navigation
+* Screen reader compatibility
+* Proper contrast ratios
+* Alternative text
+* Accessible forms
+* Responsive design
 
-Sports should reinforce KAZM's local presence.
-
----
-
-# Weather Experience
-
-Weather should be easy to access.
-
-Many listeners will visit specifically for:
-
-* Current conditions
-* Forecast
-* Heat information
-* Travel conditions
-
-Weather should be treated as a primary service.
+Accessibility is not optional.
 
 ---
 
-# Accessibility Standards
+# Performance Requirements
 
-All designs must:
-
-* Meet WCAG standards
-* Support keyboard navigation
-* Use proper contrast ratios
-* Include alt text
-* Support screen readers
-* Remain functional on mobile devices
-
-Accessibility is a requirement, not an enhancement.
-
----
-
-# Performance Standards
-
-The site must feel fast.
+The website must feel fast.
 
 Prioritize:
 
 * Fast page loads
-* Optimized images
 * Minimal JavaScript
+* Optimized images
+* Efficient caching
 * SEO-friendly architecture
 * Mobile performance
 
-The site should perform well even in areas with limited connectivity.
+Performance is a feature.
 
 ---
 
@@ -356,15 +566,15 @@ The site should perform well even in areas with limited connectivity.
 Never generate:
 
 * Generic startup copy
-* Placeholder text
 * Lorem ipsum
-* Generic feature grids
-* Pricing tables
+* Placeholder content
+* Empty feature grids
 * Corporate buzzwords
-* AI-generated clichés
-* Unused components
+* AI clichés
+* Marketing fluff
+* Mock production content
+* Unused UI components
 * Dead code
-* Mock data in production
 
 Never describe KAZM as:
 
@@ -372,6 +582,9 @@ Never describe KAZM as:
 * A solution
 * An ecosystem
 * A disruptive technology
+* A media-tech company
+* An engagement engine
+* A digital experience platform
 
 KAZM is a radio station.
 
@@ -379,29 +592,46 @@ Act like it.
 
 ---
 
-## Personality
+# Personality
 
 KAZM should feel:
 
-*Friendly
-*Slightly quirky
-*Deeply local
-*Music-loving
-*Arizona proud
+* Friendly
+* Slightly quirky
+* Music-loving
+* Deeply local
+* Arizona proud
+* Welcoming
+* Relaxed
 
-Not:
+Never:
 
-*Academic
-*Sterile
-*Institutional
-*Corperate
+* Academic
+* Sterile
+* Corporate
+* Institutional
+* Overly formal
 
 ---
 
 # Final Standard
 
-Every design decision should pass this test:
+Before implementing any design, page, feature, component, animation, content section, or user experience decision, ask:
 
-"If a listener from Sedona who has listened to KAZM for 20 years visited this page, would it feel like their radio station?"
+"Would a longtime Sedona listener immediately recognize this as KAZM?"
 
-If the answer is no, redesign it.
+And:
+
+"If someone removed the logo, would this still feel like Sedona's radio station?"
+
+If the answer is no:
+
+Redesign it.
+
+Rewrite it.
+
+Simplify it.
+
+Or remove it.
+
+Do not ship it.
