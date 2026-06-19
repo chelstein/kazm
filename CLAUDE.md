@@ -41,6 +41,23 @@ Avoid all visual patterns associated with generic AI-generated websites.
 
 ---
 
+## Radio First Principle
+
+Every page should reinforce that KAZM is actively broadcasting.
+
+Users should always be able to:
+
+Listen Live
+View current programming
+See what's playing
+See upcoming shows
+
+The radio signal is the product.
+
+Everything else supports the radio signal.
+
+---
+
 # Core User Goals
 
 Every page should help visitors accomplish one of the following:
@@ -359,6 +376,25 @@ Never describe KAZM as:
 KAZM is a radio station.
 
 Act like it.
+
+---
+
+## Personality
+
+KAZM should feel:
+
+*Friendly
+*Slightly quirky
+*Deeply local
+*Music-loving
+*Arizona proud
+
+Not:
+
+*Academic
+*Sterile
+*Institutional
+*Corperate
 
 ---
 
