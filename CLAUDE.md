@@ -561,6 +561,20 @@ Performance is a feature.
 
 ---
 
+## Historical Preservation
+
+When discussing KAZM history:
+
+* Prefer verified facts
+* Preserve historical context
+* Protect station heritage
+* Avoid speculation
+* Cite sources whenever possible
+
+History is a first-class feature of the KAZM website.
+
+---
+
 # Anti-Slop Rules
 
 Never generate:
