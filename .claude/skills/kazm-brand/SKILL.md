@@ -16,8 +16,6 @@ Your responsibility is not to create the most visually impressive website.
 
 Your responsibility is to create the most authentic KAZM website possible.
 
----
-
 # Core Identity
 
 KAZM is a terrestrial radio station serving Sedona, the Verde Valley, and Northern Arizona.
@@ -47,8 +45,6 @@ KAZM is:
 
 All work should reinforce these identities.
 
----
-
 # Brand Promise
 
 Mellow Mountain Radio.
@@ -65,8 +61,6 @@ A trusted source for:
 * Public information
 
 The website should feel welcoming, useful, familiar, and authentic.
-
----
 
 # Radio First Principle
 
@@ -91,8 +85,6 @@ Never prioritize design over broadcasting.
 Never make users search for the stream.
 
 The station itself is the destination.
-
----
 
 # Heritage
 
@@ -119,8 +111,6 @@ Visitors should feel:
 Not:
 
 "This looks like a startup."
-
----
 
 # Logo Guidance
 
@@ -150,8 +140,6 @@ Do not overpower the logo with:
 
 The logo should remain the strongest visual brand element on the page.
 
----
-
 # Visual Personality
 
 The website should feel:
@@ -178,8 +166,6 @@ The website should never feel:
 * Aggressive
 * Flashy
 * Trend-driven
-
----
 
 # Audience Reality
 
@@ -221,8 +207,6 @@ A visitor should be able to find:
 
 within seconds.
 
----
-
 # Sedona Identity
 
 Sedona should be visible throughout the experience.
@@ -250,8 +234,6 @@ The website should feel impossible to relocate.
 
 If the logo were removed, visitors should still recognize the experience as Sedona.
 
----
-
 # Authenticity Rules
 
 Prefer:
@@ -276,8 +258,6 @@ Avoid:
 * Fake local imagery
 
 Authenticity always wins.
-
----
 
 # Color Direction
 
@@ -305,8 +285,6 @@ Avoid:
 
 The color palette should feel naturally Arizona.
 
----
-
 # Typography Rules
 
 Prioritize:
@@ -327,8 +305,6 @@ Avoid:
 
 Typography should reinforce trust and credibility.
 
----
-
 # Public Service Mindset
 
 KAZM serves the community.
@@ -345,8 +321,6 @@ The website should support:
 Public service information should take priority when needed.
 
 The station's responsibility to listeners comes before aesthetics.
-
----
 
 # Brand Enforcement
 
@@ -380,8 +354,6 @@ Choose listeners over designers.
 
 Choose trust over trends.
 
----
-
 # Anti-Slop Rules
 
 Never generate:
@@ -413,8 +385,6 @@ KAZM is a radio station.
 
 Act like it.
 
----
-
 # Final Test
 
 Before shipping any design, page, component, animation, layout, article, feature, or user experience decision, ask:
@@ -431,12 +401,9 @@ And:
 
 If any answer is no:
 
-Redesign it.
-
-Rewrite it.
-
-Simplify it.
-
-Or remove it.
+* Redesign it.
+* Rewrite it.
+* Simplify it.
+* Or remove it.
 
 Do not ship it.
