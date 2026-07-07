@@ -135,7 +135,35 @@ website; drive times favor weather).
 **Self-identification.** Independent of the angle, `mSelfID` rolls **~40%** per
 break; when it hits, the fact sheet tells Marcus to work his on-air name into
 the sign-off ("this is Marcus Moon on Mellow Mountain Radio"). The rest of the
-time he just closes on the station name, so his name never feels forced. The director:
+time he just closes on the station name, so his name never feels forced.
+
+**MegaSeg playlist control (the workflow is the music director).** MegaSeg's
+data folder syncs through Dropbox (`/Charles Helstein/MegaSegDropbox/MegaSeg
+copy/`), and its playlists are plain TSV files that can be overwritten on the
+fly. Each break run now:
+
+1. **Fetch the music library** — downloads `Library/MegaSeg Database`
+   (MegaSeg's numbered-field record format: `01]` name, `02]` artist, `05]`
+   time, `06]` category, `45]` UniqueID, `49]` Mac-style location, records
+   split by `99* ----`).
+2. **Pick the next songs** — filters to the `+Quiet Storm` / `+Quiet Storm 10`
+   categories (~80 tracks), excludes recently-aired titles (AzuraCast) and
+   recently-scheduled UniqueIDs (`staticData.scheduledSongs`, last 24), and
+   picks 3.
+3. Marcus's fact sheet gains a **`next` song kind** — coming-up songs are
+   locked into the playout, so teasing them is guaranteed-accurate (this
+   restores the "coming up next" capability lost when MegaSeg's ComingUp.html
+   feed died).
+4. After the VO uploads, **Compose + Update the DJ VO playlist** rewrites the
+   `Playlists/Quiet Storm DJ VO` file: header + the VO track row (verbatim) +
+   `:cat +Quiet Storm Bed Music` + the 3 explicit song rows (25-column TSV,
+   exact Location + UniqueID from the database) + `:load Quiet Storm` as a
+   cushion so music never runs dry between breaks.
+
+MegaSeg's Events insert this playlist at 4:20/4:40/5:10/5:30 AM; the n8n runs
+fire ~4 minutes earlier, so the fresh VO and song picks are always in place.
+The playlist write happens only after the VO upload succeeds — a failed run
+leaves the previous playlist intact. The director:
 
 - Picks a **primary** angle, **excluding the last 3 used** (anti-repeat memory
   in `staticData.recentAngles`) — so consecutive breaks never lead with the
