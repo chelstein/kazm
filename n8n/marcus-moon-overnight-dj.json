@@ -1,0 +1,274 @@
+{
+  "name": "KAZM Marcus Moon — Overnight DJ Breaks",
+  "settings": { "executionOrder": "v1", "timezone": "America/Phoenix" },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "2 22,23,0,1,2,3,4 * * *" }] }
+      },
+      "id": "trig-night",
+      "name": "Overnight hour strikes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "kazm-moon-now",
+        "options": {}
+      },
+      "id": "wh-now",
+      "name": "Make one now (remote)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 200],
+      "webhookId": "kazm-moon-now"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Anyone can find a URL; only the key holder gets to spend API credits.\nconst q = $input.first().json.query || {};\nif (q.k !== 'moon-2026') return [];\nreturn [{ json: { manual: true } }];"
+      },
+      "id": "code-gate",
+      "name": "Check the key",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [200, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://streaming.mellowmountainradio.com/api/nowplaying/mellowmountainradio",
+        "options": { "timeout": 15000 }
+      },
+      "id": "http-np",
+      "name": "Ask the airwaves",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [400, 0]
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=34.8697&longitude=-111.7610&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_min,temperature_2m_max,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FPhoenix&forecast_days=2",
+        "options": { "timeout": 15000 }
+      },
+      "id": "http-wx",
+      "name": "Check the Sedona sky",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [600, 0],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Everything Marcus is allowed to know tonight lives on this sheet.\n// If a fact is not on the sheet, he cannot say it — that is how the\n// weather, events, and song talk stay honest.\nconst sd = $getWorkflowStaticData('global');\nconst np = $('Ask the airwaves').first().json || {};\nconst wxRaw = $input.first().json || {};\n\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst today = phx.getFullYear() + '-' + pad(phx.getMonth() + 1) + '-' + pad(phx.getDate());\nconst days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];\nconst weekday = days[phx.getDay()];\nconst h = phx.getHours();\nconst h12 = ((h + 11) % 12) + 1;\nconst clock = h12 + ':' + pad(phx.getMinutes()) + ' ' + (h >= 12 ? 'PM' : 'AM');\nconst mood = h >= 21 ? 'first stretch of the overnight — people winding down, lights going low'\n  : h < 3 ? 'deep night — just you and the night owls now'\n  : h < 5 ? 'the small hours — the quietest part of the shift, morning still a rumor'\n  : 'right before dawn — the sky is about to turn';\n\n// Songs — straight from the station. Past plays are always safe facts.\nconst skip = (t) => !t || String(t).toLowerCase() === 'mellow mountain radio';\nconst song = (s) => (s && s.title && !skip(s.title)) ? { title: String(s.title).slice(0, 120), artist: String(s.artist || '').slice(0, 120) } : null;\nconst nowSong = song(np.now_playing && np.now_playing.song);\nconst recent = [];\nfor (const r of (np.song_history || []).slice(0, 6)) {\n  const s = song(r && r.song);\n  if (s) recent.push(s);\n}\nconst nextSong = song(np.playing_next && np.playing_next.song);\n\n// Weather — real numbers or nothing at all.\nlet wx = null;\nif (wxRaw.current && typeof wxRaw.current.temperature_2m === 'number') {\n  const codes = { 0:'clear skies',1:'mostly clear',2:'partly cloudy',3:'overcast',45:'foggy',48:'foggy',51:'light drizzle',53:'drizzle',55:'drizzle',61:'light rain',63:'rain',65:'heavy rain',71:'light snow',73:'snow',75:'heavy snow',77:'snow',80:'passing showers',81:'showers',82:'heavy showers',85:'snow showers',86:'snow showers',95:'thunderstorms',96:'thunderstorms',99:'thunderstorms' };\n  const d = wxRaw.daily || {};\n  wx = {\n    now: Math.round(wxRaw.current.temperature_2m),\n    feels: Math.round(wxRaw.current.apparent_temperature),\n    sky: codes[wxRaw.current.weather_code] || 'quiet skies',\n    wind: Math.round(wxRaw.current.wind_speed_10m || 0),\n    tonightLow: Array.isArray(d.temperature_2m_min) && d.temperature_2m_min.length ? Math.round(Math.min(...d.temperature_2m_min.slice(0, 2))) : null,\n    tomorrowHigh: Array.isArray(d.temperature_2m_max) && d.temperature_2m_max.length > 1 ? Math.round(d.temperature_2m_max[1]) : null,\n  };\n}\n\n// Events — only what a human put on the board, only while still upcoming.\nsd.events = (sd.events || []).filter((e) => e && e.date >= today);\nconst horizon = new Date(phx); horizon.setDate(horizon.getDate() + 10);\nconst hstr = horizon.getFullYear() + '-' + pad(horizon.getMonth() + 1) + '-' + pad(horizon.getDate());\nconst events = sd.events.filter((e) => e.date <= hstr).slice(0, 2).map((e) => {\n  const d = new Date(e.date + 'T12:00:00');\n  const when = e.date === today ? 'today/tonight' : days[d.getDay()] + ' (' + e.date + ')';\n  return { when, name: e.name, place: e.place || '', note: e.note || '' };\n});\n\n// Rotate the flavor so back-to-back breaks never sound alike.\nconst flavors = ['weather', 'song-vibe', 'listener-love', 'night-thoughts'];\nif (events.length) { flavors.push('event', 'event'); }\nsd.flavorIdx = ((sd.flavorIdx || 0) + 1) % flavors.length;\nconst flavor = flavors[sd.flavorIdx];\nconst lean = {\n  'weather': 'Lean on the weather this break — give the temperature like it matters to somebody driving home late, and where tonight is headed.',\n  'song-vibe': 'Lean on the music this break — react to something from the recently played list, how it lands at this hour. Feeling only, no trivia.',\n  'listener-love': 'Lean on the listener this break — the night driver, the one who cannot sleep, the two people sharing one pair of headphones. Make one of them feel seen.',\n  'night-thoughts': 'Lean on the night itself this break — Sedona in the dark, the red rocks you cannot see but know are out there. Keep it small and true, not poetry-contest stuff.',\n  'event': 'Lean on one local happening from the sheet this break — mention it like you are letting a friend in on a plan. Only the details on the sheet, nothing more.',\n}[flavor];\n\n// His last few openings, so he never starts the same way twice.\nconst openings = (sd.scripts || []).slice(-4).map((s) => s.opening).filter(Boolean);\n\nconst sheet = [];\nsheet.push('Time: ' + weekday + ', ' + clock + ' in Sedona, Arizona. Mood of the hour: ' + mood + '.');\nif (wx) {\n  let w = 'Weather right now: ' + wx.now + ' degrees (feels like ' + wx.feels + '), ' + wx.sky + ', wind ' + wx.wind + ' mph.';\n  if (wx.tonightLow !== null) w += \" Tonight's low: \" + wx.tonightLow + '.';\n  if (wx.tomorrowHigh !== null) w += \" Tomorrow's high: \" + wx.tomorrowHigh + '.';\n  sheet.push(w);\n} else {\n  sheet.push('Weather: not available this break — do not mention weather at all.');\n}\nif (nowSong) sheet.push('Playing as this break was written: \"' + nowSong.title + '\" — ' + nowSong.artist + '.');\nif (recent.length) sheet.push('Recently played (safe to talk about in past tense): ' + recent.map((s) => '\"' + s.title + '\" — ' + s.artist).join('; ') + '.');\nif (nextSong) sheet.push('On deck (tease loosely as \"on the way tonight\" — never promise it is the very next song): \"' + nextSong.title + '\" — ' + nextSong.artist + '.');\nif (events.length) sheet.push('Local happenings board: ' + events.map((e) => e.name + (e.place ? ' at ' + e.place : '') + ', ' + e.when + (e.note ? ' (' + e.note + ')' : '')).join('; ') + '.');\n\nconst system = 'You are Marcus Moon, the overnight voice of Mellow Mountain Radio in Sedona, Arizona. You spin R&B, soul, and quiet storm through the late shift — Isley Brothers records, slow burners, songs made for low light. Your voice is soft, deep, and unhurried. You are flirty the way a slow song is flirty: warm, smooth, a little playful — never explicit, never sleazy. You talk to ONE listener at a time, like it is just the two of you awake in the whole valley.\\n\\nHard rules — break any of these and the break does not air:\\n- Output ONLY the words Marcus speaks. No stage directions, no brackets, no quotes wrapping the whole thing, no emojis, no markdown, no notes.\\n- Use ONLY the facts on the fact sheet. Never invent weather numbers, events, songs, artists, times, or places. If a fact is not on the sheet, it does not exist tonight.\\n- No artist trivia, biography, or chart history — you talk about how the music FEELS, not facts about it.\\n- 60 to 110 words. Short sentences. Write for the ear, not the page. Ellipses are fine for a slow pause.\\n- Say numbers and dates the way a person says them out loud: \"about forty-eight degrees\", \"this Saturday\" — never read a date format or a dash.\\n- Mention the station once, naturally: \"Mellow Mountain Radio\" or \"the Mountain\".\\n- Vary how you open. Never start with an opening listed as recently used, and never lean on stock DJ lines like \"you are listening to\" or \"coming up next\".\\n- Never mention being an AI, a script, a prompt, or anything behind the curtain. You are Marcus. Full stop.';\n\nconst user = \"Here is tonight's fact sheet. Write Marcus's next talk break.\\n\\n\" + sheet.join('\\n') + '\\n\\n' + lean + '\\n\\nRecently used openings (do NOT start like any of these): ' + (openings.length ? openings.join(' | ') : 'none yet — this is a fresh night') + '.';\n\nreturn [{ json: { system, user, meta: { flavor, clock, weekday } } }];"
+      },
+      "id": "code-sheet",
+      "name": "Build the fact sheet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "PASTE-YOUR-ANTHROPIC-API-KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 2000, thinking: { type: 'adaptive' }, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": { "timeout": 90000 }
+      },
+      "id": "http-claude",
+      "name": "Marcus writes the script",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Last line of defense before the voice booth: strip anything that is\n// not spoken words, and refuse to air a break that leaked the seams.\nconst resp = $input.first().json || {};\nif (resp.stop_reason === 'refusal') throw new Error('The writer declined this break — try again next hour');\nlet text = (resp.content || []).filter((b) => b.type === 'text').map((b) => b.text).join(' ').trim();\nif (!text) throw new Error('No script came back from the writer');\ntext = text.replace(/\\[[^\\]]*\\]/g, ' ');\ntext = text.replace(/^[\\\"'\\u201c\\u2018]+|[\\\"'\\u2019\\u201d]+$/g, '');\ntext = text.replace(/[*_#>`]+/g, ' ');\ntext = text.replace(/\\s+/g, ' ').trim();\nfor (const bad of [/as an ai/i, /language model/i, /\\bfact sheet\\b/i]) {\n  if (bad.test(text)) throw new Error('Script leaked something off-air: ' + text.slice(0, 80));\n}\nconst words = text.split(' ').length;\nif (words < 25) throw new Error('Script came back too short to air: ' + text);\nconst meta = ($('Build the fact sheet').first().json || {}).meta || {};\nreturn [{ json: { script: text, words, opening: text.split(' ').slice(0, 7).join(' '), flavor: meta.flavor || '' } }];"
+      },
+      "id": "code-clean",
+      "name": "Clean the copy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/rWyjfFeMZ6PxkHqD3wGC?output_format=mp3_44100_128",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "xi-api-key", "value": "PASTE-YOUR-ELEVENLABS-API-KEY" },
+            { "name": "Accept", "value": "audio/mpeg" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.script, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.55, similarity_boost: 0.75, style: 0.35, use_speaker_boost: true } }) }}",
+        "options": {
+          "timeout": 120000,
+          "response": { "response": { "responseFormat": "file", "outputPropertyName": "data" } }
+        }
+      },
+      "id": "http-tts",
+      "name": "Marcus finds his voice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1400, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Name the tape with Phoenix time and base64 it for the AzuraCast files API.\nconst PLAYLIST_ID = 0; // ← set this to your \"DJ Breaks\" playlist id in AzuraCast\nconst buf = await this.helpers.getBinaryDataBuffer(0, 'data');\nif (!buf || buf.length < 20000) throw new Error('Voice file came back suspiciously small (' + (buf ? buf.length : 0) + ' bytes) — not airing it');\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst name = 'marcus-' + phx.getFullYear() + '-' + pad(phx.getMonth() + 1) + '-' + pad(phx.getDate()) + '-' + pad(phx.getHours()) + pad(phx.getMinutes()) + '.mp3';\nreturn [{ json: { path: 'DJ Breaks/' + name, name, b64: buf.toString('base64'), playlistId: PLAYLIST_ID, bytes: buf.length } }];"
+      },
+      "id": "code-pack",
+      "name": "Package the tape",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1600, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://streaming.mellowmountainradio.com/api/station/mellowmountainradio/files",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-API-Key", "value": "75db8e647f92cee6:d5e9086849a6b13e27503c72d62ccab7" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ path: $json.path, file: $json.b64 }) }}",
+        "options": { "timeout": 120000 }
+      },
+      "id": "http-upload",
+      "name": "Upload the break",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1800, 0]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://streaming.mellowmountainradio.com/api/station/mellowmountainradio/file/{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-API-Key", "value": "75db8e647f92cee6:d5e9086849a6b13e27503c72d62ccab7" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ playlists: [{ id: $('Package the tape').first().json.playlistId }] }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "http-playlist",
+      "name": "Drop into rotation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 0],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Write tonight's entry in the logbook, then retire the previous break\n// so yesterday's weather never plays back on tonight's air.\nconst sd = $getWorkflowStaticData('global');\nsd.scripts = sd.scripts || [];\nconst c = $('Clean the copy').first().json;\nconst p = $('Package the tape').first().json;\nconst up = $('Upload the break').first().json || {};\n\nconst prev = sd.lastBreakId || null;\nsd.lastBreakId = up.id || null;\nlet retired = null;\nif (prev && prev !== sd.lastBreakId) {\n  try {\n    await this.helpers.httpRequest({\n      method: 'DELETE',\n      url: 'https://streaming.mellowmountainradio.com/api/station/mellowmountainradio/file/' + prev,\n      headers: { 'X-API-Key': '75db8e647f92cee6:d5e9086849a6b13e27503c72d62ccab7' },\n      timeout: 30000,\n    });\n    retired = prev;\n  } catch (e) { /* an unretired old break is annoying, not fatal */ }\n}\n\nsd.scripts.push({ at: new Date().toISOString(), file: p.name, azuracast: sd.lastBreakId, flavor: c.flavor, words: c.words, opening: c.opening, script: c.script });\nif (sd.scripts.length > 40) sd.scripts = sd.scripts.slice(-40);\nreturn [{ json: { aired: p.name, azuracastId: sd.lastBreakId, retired, words: c.words, flavor: c.flavor } }];"
+      },
+      "id": "code-log",
+      "name": "Sign the logbook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2200, 0]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "kazm-moon-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-events",
+      "name": "Curate the events board",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 420],
+      "webhookId": "kazm-moon-events"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The events board: a human writes it, Marcus only ever reads it.\n// ?k=moon-2026&do=add&date=YYYY-MM-DD&name=...&place=...&note=...\n// ?k=moon-2026&do=remove&i=0        ?k=moon-2026 (list)\nconst q = $input.first().json.query || {};\nconst sd = $getWorkflowStaticData('global');\nsd.events = sd.events || [];\nif (q.k !== 'moon-2026') return [{ json: { ok: false, why: 'bad key' } }];\nconst act = q.do || 'list';\nif (act === 'add') {\n  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(q.date || '') || !q.name) {\n    return [{ json: { ok: false, why: 'need date=YYYY-MM-DD and name=' } }];\n  }\n  sd.events.push({ date: q.date, name: String(q.name).slice(0, 120), place: String(q.place || '').slice(0, 80), note: String(q.note || '').slice(0, 200) });\n  sd.events.sort((a, b) => (a.date < b.date ? -1 : 1));\n}\nif (act === 'remove') {\n  const i = parseInt(q.i, 10);\n  if (!isNaN(i) && i >= 0 && i < sd.events.length) sd.events.splice(i, 1);\n}\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst today = phx.getFullYear() + '-' + pad(phx.getMonth() + 1) + '-' + pad(phx.getDate());\nsd.events = sd.events.filter((e) => e.date >= today);\nreturn [{ json: { ok: true, events: sd.events.map((e, i) => ({ i, ...e })) } }];"
+      },
+      "id": "code-events",
+      "name": "Tend the board",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [200, 420]
+    },
+    {
+      "parameters": { "respondWith": "firstIncomingItem", "options": {} },
+      "id": "resp-events",
+      "name": "Respond to curator",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [400, 420]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "kazm-moon-log",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-log",
+      "name": "Peek at the logbook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 620],
+      "webhookId": "kazm-moon-log"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read the last ten breaks — what Marcus said and when he said it.\nconst q = $input.first().json.query || {};\nconst sd = $getWorkflowStaticData('global');\nif (q.k !== 'moon-2026') return [{ json: { ok: false, why: 'bad key' } }];\nconst scripts = (sd.scripts || []).slice(-10).reverse();\nreturn [{ json: { ok: true, scripts, events: sd.events || [] } }];"
+      },
+      "id": "code-readlog",
+      "name": "Read the logbook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [200, 620]
+    },
+    {
+      "parameters": { "respondWith": "firstIncomingItem", "options": {} },
+      "id": "resp-log",
+      "name": "Respond with the log",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [400, 620]
+    }
+  ],
+  "connections": {
+    "Overnight hour strikes": { "main": [[{ "node": "Ask the airwaves", "type": "main", "index": 0 }]] },
+    "Make one now (remote)": { "main": [[{ "node": "Check the key", "type": "main", "index": 0 }]] },
+    "Check the key": { "main": [[{ "node": "Ask the airwaves", "type": "main", "index": 0 }]] },
+    "Ask the airwaves": { "main": [[{ "node": "Check the Sedona sky", "type": "main", "index": 0 }]] },
+    "Check the Sedona sky": { "main": [[{ "node": "Build the fact sheet", "type": "main", "index": 0 }]] },
+    "Build the fact sheet": { "main": [[{ "node": "Marcus writes the script", "type": "main", "index": 0 }]] },
+    "Marcus writes the script": { "main": [[{ "node": "Clean the copy", "type": "main", "index": 0 }]] },
+    "Clean the copy": { "main": [[{ "node": "Marcus finds his voice", "type": "main", "index": 0 }]] },
+    "Marcus finds his voice": { "main": [[{ "node": "Package the tape", "type": "main", "index": 0 }]] },
+    "Package the tape": { "main": [[{ "node": "Upload the break", "type": "main", "index": 0 }]] },
+    "Upload the break": { "main": [[{ "node": "Drop into rotation", "type": "main", "index": 0 }]] },
+    "Drop into rotation": { "main": [[{ "node": "Sign the logbook", "type": "main", "index": 0 }]] },
+    "Curate the events board": { "main": [[{ "node": "Tend the board", "type": "main", "index": 0 }]] },
+    "Tend the board": { "main": [[{ "node": "Respond to curator", "type": "main", "index": 0 }]] },
+    "Peek at the logbook": { "main": [[{ "node": "Read the logbook", "type": "main", "index": 0 }]] },
+    "Read the logbook": { "main": [[{ "node": "Respond with the log", "type": "main", "index": 0 }]] }
+  }
+}
