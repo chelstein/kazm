@@ -89,23 +89,29 @@
     },
     {
       "parameters": {
-        "modelId": { "__rl": true, "value": "gpt-4.1-mini", "mode": "list", "cachedResultName": "GPT-4.1-MINI" },
-        "responses": { "values": [
-          { "role": "system", "content": "={{ $json.system }}" },
-          { "content": "={{ $json.user }}" }
-        ] },
-        "builtInTools": {},
-        "options": {}
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "PASTE-YOUR-ANTHROPIC-KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 500, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": { "timeout": 60000 }
       },
       "id": "ai-brain",
-      "name": "DJ Brain for Marcus Moon",
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 2.1,
+      "name": "Claude writes the break",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [1100, 0]
     },
     {
       "parameters": {
-        "jsCode": "// Last line of defense before the voice booth: spoken words only,\n// and refuse to air anything that leaked the seams.\nconst r = $input.first().json || {};\nlet text = '';\ntry { text = r.output[0].content[0].text; } catch (e) {}\nif (!text && typeof r.text === 'string') text = r.text;\nif (!text && r.message && r.message.content) text = r.message.content;\ntext = String(text || '').trim();\nif (!text) throw new Error('No script came back from the DJ brain');\ntext = text.replace(/\\[[^\\]]*\\]/g, ' ');\ntext = text.replace(/^[\\\"'\\u201c\\u2018]+|[\\\"'\\u2019\\u201d]+$/g, '');\ntext = text.replace(/[*_#>`]+/g, ' ');\ntext = text.replace(/\\s+/g, ' ').trim();\nfor (const bad of [/as an ai/i, /language model/i, /\\bfact sheet\\b/i, /\\bmention flag/i]) {\n  if (bad.test(text)) throw new Error('Script leaked something off-air: ' + text.slice(0, 80));\n}\nconst words = text.split(' ').length;\nif (words < 25) throw new Error('Script came back too short to air: ' + text);\nreturn [{ json: { script: text, words, opening: text.split(' ').slice(0, 7).join(' ') } }];"
+        "jsCode": "// Last line of defense before the voice booth: spoken words only,\n// and refuse to air anything that leaked the seams.\nconst r = $input.first().json || {};\nif (r.stop_reason === 'refusal') throw new Error('Claude declined to write this break');\nlet text = '';\ntry {\n  const block = (r.content || []).find((b) => b.type === 'text');\n  text = block ? block.text : '';\n} catch (e) {}\ntext = String(text || '').trim();\nif (!text) throw new Error('No script came back from Claude: ' + JSON.stringify(r).slice(0, 300));\ntext = text.replace(/\\[[^\\]]*\\]/g, ' ');\ntext = text.replace(/^[\\\"'\\u201c\\u2018]+|[\\\"'\\u2019\\u201d]+$/g, '');\ntext = text.replace(/[*_#>`]+/g, ' ');\ntext = text.replace(/\\s+/g, ' ').trim();\nfor (const bad of [/as an ai/i, /language model/i, /\\bfact sheet\\b/i, /\\bmention flag/i]) {\n  if (bad.test(text)) throw new Error('Script leaked something off-air: ' + text.slice(0, 80));\n}\nconst words = text.split(' ').length;\nif (words < 25) throw new Error('Script came back too short to air: ' + text);\nreturn [{ json: { script: text, words, opening: text.split(' ').slice(0, 7).join(' ') } }];"
       },
       "id": "code-clean",
       "name": "Clean the copy",
@@ -194,23 +200,29 @@
     },
     {
       "parameters": {
-        "modelId": { "__rl": true, "value": "gpt-4.1-mini", "mode": "list", "cachedResultName": "GPT-4.1-MINI" },
-        "responses": { "values": [
-          { "role": "system", "content": "={{ $json.system }}" },
-          { "content": "={{ $json.user }}" }
-        ] },
-        "builtInTools": {},
-        "options": {}
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "PASTE-YOUR-ANTHROPIC-KEY" },
+            { "name": "anthropic-version", "value": "2023-06-01" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 500, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": { "timeout": 60000 }
       },
       "id": "ai-brain-intro",
-      "name": "DJ Brain for the intro",
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 2.1,
+      "name": "Claude writes the intro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [660, 560]
     },
     {
       "parameters": {
-        "jsCode": "const r = $input.first().json || {};\nlet text = '';\ntry { text = r.output[0].content[0].text; } catch (e) {}\nif (!text && typeof r.text === 'string') text = r.text;\nif (!text && r.message && r.message.content) text = r.message.content;\ntext = String(text || '').trim();\nif (!text) throw new Error('No intro came back from the DJ brain');\ntext = text.replace(/\\[[^\\]]*\\]/g, ' ');\ntext = text.replace(/^[\\\"'\\u201c\\u2018]+|[\\\"'\\u2019\\u201d]+$/g, '');\ntext = text.replace(/[*_#>`]+/g, ' ');\ntext = text.replace(/\\s+/g, ' ').trim();\nfor (const bad of [/as an ai/i, /language model/i]) {\n  if (bad.test(text)) throw new Error('Intro leaked something off-air: ' + text.slice(0, 80));\n}\nconst words = text.split(' ').length;\nif (words < 20) throw new Error('Intro came back too short to air: ' + text);\nreturn [{ json: { script: text, words, opening: text.split(' ').slice(0, 7).join(' ') } }];"
+        "jsCode": "const r = $input.first().json || {};\nif (r.stop_reason === 'refusal') throw new Error('Claude declined to write this intro');\nlet text = '';\ntry {\n  const block = (r.content || []).find((b) => b.type === 'text');\n  text = block ? block.text : '';\n} catch (e) {}\ntext = String(text || '').trim();\nif (!text) throw new Error('No intro came back from Claude: ' + JSON.stringify(r).slice(0, 300));\ntext = text.replace(/\\[[^\\]]*\\]/g, ' ');\ntext = text.replace(/^[\\\"'\\u201c\\u2018]+|[\\\"'\\u2019\\u201d]+$/g, '');\ntext = text.replace(/[*_#>`]+/g, ' ');\ntext = text.replace(/\\s+/g, ' ').trim();\nfor (const bad of [/as an ai/i, /language model/i]) {\n  if (bad.test(text)) throw new Error('Intro leaked something off-air: ' + text.slice(0, 80));\n}\nconst words = text.split(' ').length;\nif (words < 20) throw new Error('Intro came back too short to air: ' + text);\nreturn [{ json: { script: text, words, opening: text.split(' ').slice(0, 7).join(' ') } }];"
       },
       "id": "code-clean-intro",
       "name": "Clean the intro",
@@ -337,15 +349,15 @@
     "Weather for DJ": { "main": [[{ "node": "Coming Up for DJ", "type": "main", "index": 0 }]] },
     "Coming Up for DJ": { "main": [[{ "node": "Ask the airwaves", "type": "main", "index": 0 }]] },
     "Ask the airwaves": { "main": [[{ "node": "Build the fact sheet", "type": "main", "index": 0 }]] },
-    "Build the fact sheet": { "main": [[{ "node": "DJ Brain for Marcus Moon", "type": "main", "index": 0 }]] },
-    "DJ Brain for Marcus Moon": { "main": [[{ "node": "Clean the copy", "type": "main", "index": 0 }]] },
+    "Build the fact sheet": { "main": [[{ "node": "Claude writes the break", "type": "main", "index": 0 }]] },
+    "Claude writes the break": { "main": [[{ "node": "Clean the copy", "type": "main", "index": 0 }]] },
     "Clean the copy": { "main": [[{ "node": "Marcus finds his voice", "type": "main", "index": 0 }]] },
     "Marcus finds his voice": { "main": [[{ "node": "Quiet Storm Liner", "type": "main", "index": 0 }]] },
     "Quiet Storm Liner": { "main": [[{ "node": "Sign the logbook", "type": "main", "index": 0 }]] },
     "Intro time (weekdays 3:59a)": { "main": [[{ "node": "Weather for the intro", "type": "main", "index": 0 }]] },
     "Weather for the intro": { "main": [[{ "node": "Build the intro brief", "type": "main", "index": 0 }]] },
-    "Build the intro brief": { "main": [[{ "node": "DJ Brain for the intro", "type": "main", "index": 0 }]] },
-    "DJ Brain for the intro": { "main": [[{ "node": "Clean the intro", "type": "main", "index": 0 }]] },
+    "Build the intro brief": { "main": [[{ "node": "Claude writes the intro", "type": "main", "index": 0 }]] },
+    "Claude writes the intro": { "main": [[{ "node": "Clean the intro", "type": "main", "index": 0 }]] },
     "Clean the intro": { "main": [[{ "node": "Marcus voices the intro", "type": "main", "index": 0 }]] },
     "Marcus voices the intro": { "main": [[{ "node": "Quiet Storm Intro", "type": "main", "index": 0 }]] },
     "Quiet Storm Intro": { "main": [[{ "node": "Sign the logbook (intro)", "type": "main", "index": 0 }]] },
