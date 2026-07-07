@@ -10,11 +10,20 @@ workflow *before* the script is written, so nothing is ever hallucinated.
 - **`marcus-moon-dj-brain-v2.json`** — snapshot of the **live production
   workflow** (`KAZM Marcus Moon — DJ Brain v2`, n8n id `TXLMR5mFONtoMZg3`).
   This is what is actually on air. It writes hourly overnight breaks **and** a
-  weekday show intro, pulls facts from NWS weather + MegaSeg's `ComingUp.html`
-  feed + AzuraCast history + a human-curated events board, writes the script
+  weekday show intro, pulls facts from NWS weather + live AzuraCast now-playing
+  and history + the mellowmountainradio.com site feeds (events, concerts,
+  festivals, movie showtimes) + a human-curated events board, writes the script
   with **Claude** (`claude-opus-4-8`, adaptive thinking, via plain HTTP Request
   nodes), voices it with ElevenLabs, and overwrites an MP3 in **Dropbox** that
   MegaSeg plays on air. Start here.
+
+  > **Song data note:** MegaSeg's `ComingUp.html` feed is no longer used — it
+  > went stale (frozen since March 2026) and AzuraCast publishes no
+  > `playing_next` for this station, so there is no reliable "coming up next"
+  > source. Song talk is therefore driven entirely by **live AzuraCast data**:
+  > the current track (`now_playing`, guarded by `elapsed > 90s` so an ad mid-play
+  > is never named) and recently-played history. Marcus may tease "more music on
+  > the way" but never names an unlisted next song.
 - **`marcus-moon-overnight-dj.json`** — the earlier design reference (uploads
   to AzuraCast, Open-Meteo weather, single overnight flow). Kept for history;
   the rest of this README below the next section describes that design.
@@ -94,13 +103,13 @@ spotlights are tracked in `staticData` (last 6) so he doesn't repeat.
 **The director (variety engine).** So no two breaks feel the same, a "director"
 in `Build the fact sheet` picks a **fresh lead angle** for every break instead
 of rolling each subject independently. The candidate angles are: `weather`,
-`songTease` (coming up next), `songVibe` (a recently-played track, past tense),
-`local` (Sedona happening), `concert` (Arizona show), `movie` (Sedona Film
-Festival screening, live from `showtimes.json`), `website` (a site spotlight),
-and `reflection` (no facts at all — pure overnight mood). Each angle is
-available only if its data exists, and is weighted by time of day (overnight
-favors reflection / website / vibe; drive times favor weather / coming-up
-songs). The director:
+`nowPlaying` (the song on the air right now, live from AzuraCast), `songVibe`
+(a recently-played track, past tense), `local` (Sedona happening), `concert`
+(Arizona show), `movie` (Sedona Film Festival screening, live from
+`showtimes.json`), `website` (a site spotlight), and `reflection` (no facts at
+all — pure overnight mood). Each angle is available only if its data exists,
+and is weighted by time of day (overnight favors reflection / website / vibe;
+drive times favor weather / current song). The director:
 
 - Picks a **primary** angle, **excluding the last 3 used** (anti-repeat memory
   in `staticData.recentAngles`) — so consecutive breaks never lead with the
