@@ -690,7 +690,7 @@
       "parameters": {
         "authentication": "oAuth2",
         "operation": "upload",
-        "path": "/Charles Helstein/MegaSegDropbox/MegaSeg copy/Playlists/Quiet Storm DJ VO TEST",
+        "path": "/Charles Helstein/MegaSegDropbox/MegaSeg copy/Playlists/Quiet Storm DJ VO",
         "binaryData": false,
         "fileContent": "={{ $json.playlistContent }}"
       },
