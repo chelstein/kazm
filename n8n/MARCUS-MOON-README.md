@@ -103,13 +103,21 @@ spotlights are tracked in `staticData` (last 6) so he doesn't repeat.
 **The director (variety engine).** So no two breaks feel the same, a "director"
 in `Build the fact sheet` picks a **fresh lead angle** for every break instead
 of rolling each subject independently. The candidate angles are: `weather`,
-`nowPlaying` (the song on the air right now, live from AzuraCast), `songVibe`
-(a recently-played track, past tense), `local` (Sedona happening), `concert`
-(Arizona show), `movie` (Sedona Film Festival screening, live from
-`showtimes.json`), `website` (a site spotlight), and `reflection` (no facts at
-all — pure overnight mood). Each angle is available only if its data exists,
-and is weighted by time of day (overnight favors reflection / website / vibe;
-drive times favor weather / current song). The director:
+`song` (the track on the air now *or* a recently-played one, live from
+AzuraCast — one slot, equal weight to every other topic), `local` (Sedona
+happening), `concert` (Arizona show), `movie` (Sedona Film Festival screening,
+live from `showtimes.json`), `website` (a site spotlight), and `reflection`
+(no facts at all — pure overnight mood). Each angle is available only if its
+data exists, and is weighted by time of day (overnight favors reflection /
+website; drive times favor weather).
+
+> **Songs are one topic, not the default.** An earlier version split songs into
+> two angles (now-playing + recently-played), which made music surface roughly
+> twice as often as any other subject. They're now a single `song` angle on
+> equal footing (~15% of breaks, same as weather / local / concert / movie /
+> website), and songs are excluded from the *secondary* slot — so a non-song
+> break never also drifts into a song. Result: a genuinely different lead every
+> hour, with music as just one of the things Marcus might talk about. The director:
 
 - Picks a **primary** angle, **excluding the last 3 used** (anti-repeat memory
   in `staticData.recentAngles`) — so consecutive breaks never lead with the
