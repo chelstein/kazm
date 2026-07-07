@@ -148,17 +148,22 @@ fly. Each break run now:
    split by `99* ----`).
 2. **Pick the next songs** — filters to the `+Quiet Storm` / `+Quiet Storm 10`
    categories (~80 tracks), excludes recently-aired titles (AzuraCast) and
-   recently-scheduled UniqueIDs (`staticData.scheduledSongs`, last 24), and
-   picks 3.
-3. Marcus's fact sheet gains a **`next` song kind** — coming-up songs are
-   locked into the playout, so teasing them is guaranteed-accurate (this
-   restores the "coming up next" capability lost when MegaSeg's ComingUp.html
-   feed died).
+   recently-scheduled UniqueIDs (`staticData.scheduledSongs`, last 32), and
+   picks **4**: one **lead-in** that plays directly into the VO, and three
+   that play right after it.
+3. Marcus's fact sheet gains guaranteed song facts: the **lead-in** ("playing
+   right before this break — back-announce it") and the **coming-up songs**
+   (locked into the playout — tease as on the way). The song angle rolls one
+   of three styles: lead-out only, lead-in tease only, or the classic bracket
+   ("that was X… and I've got Y on the way"). All are guaranteed-accurate
+   because the same run writes the playlist. The old "playing right now"
+   phrasing was removed — it was recorded minutes before airing and couldn't
+   survive the delay.
 4. After the VO uploads, **Compose + Update the DJ VO playlist** rewrites the
-   `Playlists/Quiet Storm DJ VO` file: header + the VO track row (verbatim) +
-   `:cat +Quiet Storm Bed Music` + the 3 explicit song rows (25-column TSV,
-   exact Location + UniqueID from the database) + `:load Quiet Storm` as a
-   cushion so music never runs dry between breaks.
+   `Playlists/Quiet Storm DJ VO` file: header + the **lead-in song row** + the
+   VO track row (verbatim) + `:cat +Quiet Storm Bed Music` + the 3 explicit
+   song rows (25-column TSV, exact Location + UniqueID from the database) +
+   `:load Quiet Storm` as a cushion so music never runs dry between breaks.
 
 MegaSeg's Events insert this playlist at 4:20/4:40/5:10/5:30 AM; the n8n runs
 fire ~4 minutes earlier, so the fresh VO and song picks are always in place.
