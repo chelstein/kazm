@@ -1,10 +1,73 @@
 # KAZM Marcus Moon — Overnight DJ Breaks
 
 An n8n workflow that writes a fresh Marcus Moon talk break every hour of the
-overnight shift, voices it with ElevenLabs, and drops it into AzuraCast
-rotation. Every fact he says — weather, songs, local events — is fetched and
-verified by the workflow *before* the script is written, so nothing is ever
-hallucinated.
+overnight shift, voices it with ElevenLabs, and drops it into rotation. Every
+fact he says — weather, songs, local events — is fetched and verified by the
+workflow *before* the script is written, so nothing is ever hallucinated.
+
+## Two files in this folder
+
+- **`marcus-moon-dj-brain-v2.json`** — snapshot of the **live production
+  workflow** (`KAZM Marcus Moon — DJ Brain v2`, n8n id `TXLMR5mFONtoMZg3`).
+  This is what is actually on air. It writes hourly overnight breaks **and** a
+  weekday show intro, pulls facts from NWS weather + MegaSeg's `ComingUp.html`
+  feed + AzuraCast history + a human-curated events board, writes the script
+  with **Claude** (`claude-opus-4-8`, adaptive thinking, via plain HTTP Request
+  nodes), voices it with ElevenLabs, and overwrites an MP3 in **Dropbox** that
+  MegaSeg plays on air. Start here.
+- **`marcus-moon-overnight-dj.json`** — the earlier design reference (uploads
+  to AzuraCast, Open-Meteo weather, single overnight flow). Kept for history;
+  the rest of this README below the next section describes that design.
+
+## The live workflow (`marcus-moon-dj-brain-v2.json`)
+
+**Import / credentials.** Import the file, then bind three n8n credentials —
+they are referenced by id in the JSON and hold no secrets in the file itself:
+
+| Node(s) | Credential (type) | Holds |
+|---|---|---|
+| `Claude writes the break`, `Claude writes the intro` | `Anthropic API Key (Marcus Moon)` (HTTP Header Auth) | `x-api-key` header → Anthropic key |
+| `Marcus finds his voice`, `Marcus voices the intro` | `ElevenLabs API Key (Marcus Moon)` (HTTP Header Auth) | `xi-api-key` header → ElevenLabs key |
+| `Quiet Storm Liner`, `Quiet Storm Intro` | `Dropbox Connect Ry` (Dropbox OAuth2) | Dropbox account that MegaSeg reads |
+
+**The DJ-brain nodes call Claude directly over HTTP** (`POST
+https://api.anthropic.com/v1/messages`) rather than through a langchain node.
+Request shape:
+
+```json
+{
+  "model": "claude-opus-4-8",
+  "max_tokens": 4096,
+  "thinking": { "type": "adaptive" },
+  "system": "<persona + hard rules>",
+  "messages": [{ "role": "user", "content": "<fact sheet>" }]
+}
+```
+
+With adaptive thinking on, the response `content[]` array leads with a
+`thinking` block, so the `Clean the copy` / `Clean the intro` nodes select the
+first `type === "text"` block rather than assuming `content[0]`.
+
+**Recently-played fact hygiene.** AzuraCast's play history interleaves music
+with ads, sweepers, station IDs, news, and local spots, and appends album
+names / remaster tags onto song titles. `Build the fact sheet` cleans this so
+Marcus only ever references real songs:
+
+- `cleanTitle()` strips the `- Album` suffix and `(2013 Remaster)`-style tags.
+- `isBumper()` drops non-music entries using a **duration** signal (real songs
+  run 150s+; ads / IDs / spots are ≤60s) plus an artist denylist
+  (blank artist, `Live365`, `Mellow Mountain Radio`, `Station ID`,
+  `App Announcement`) and a title-token backstop.
+
+**Test it** with the same webhook as below
+(`.../webhook/kazm-moon-now?k=moon-2026`); the result MP3 lands in the Dropbox
+path on `Quiet Storm Liner`, and the last 10 scripts are visible via the
+logbook webhook.
+
+---
+
+_The sections below document the earlier `marcus-moon-overnight-dj.json`
+design._
 
 ## How it works
 

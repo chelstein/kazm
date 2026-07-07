@@ -1,0 +1,766 @@
+{
+  "name": "KAZM Marcus Moon — DJ Brain v2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "20,40 4 * * *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "10,30 5 * * *"
+            }
+          ]
+        }
+      },
+      "id": "d17fdff1-36d7-409c-b4dc-9d9bfa64f5b9",
+      "name": "Break time strikes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        2448,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "path": "kazm-moon-now",
+        "options": {}
+      },
+      "id": "239495fa-5857-412d-b6a9-055786c98f53",
+      "name": "Make one now (remote)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        688
+      ],
+      "webhookId": "kazm-moon-now"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Anyone can find a URL; only the key holder gets to spend API credits.\nconst q = $input.first().json.query || {};\nif (q.k !== 'moon-2026') return [];\nreturn [{ json: { manual: true } }];"
+      },
+      "id": "4fe38fe0-2831-45da-8e3c-814c49d53571",
+      "name": "Check the key",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2656,
+        688
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://streaming.mellowmountainradio.com/api/nowplaying/mellowmountainradio",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "3b9fdd8b-ede9-4878-a325-b0383a738a46",
+      "name": "Ask the airwaves",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3120,
+        496
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Everything Marcus is allowed to know this break lives on this sheet.\n// Facts come from NWS, MegaSeg's own ComingUp log, AzuraCast history and\n// the human-curated events board — the model only ever styles them.\nconst sd = $getWorkflowStaticData('global');\n\n// --- time ---\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst today = phx.getFullYear() + '-' + pad(phx.getMonth() + 1) + '-' + pad(phx.getDate());\nconst daysN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];\nconst weekday = daysN[phx.getDay()];\nconst hour = phx.getHours();\nconst clock = (((hour + 11) % 12) + 1) + ':' + pad(phx.getMinutes()) + ' ' + (hour >= 12 ? 'PM' : 'AM');\nconst bucket = hour < 5 ? 'overnight' : hour < 7 ? 'early morning' : hour < 9 ? 'morning drive' : hour < 11 ? 'late morning' : hour < 14 ? 'midday' : hour < 17 ? 'afternoon' : hour < 19 ? 'late afternoon' : hour < 22 ? 'evening' : 'late night';\n\n// --- weather: NWS current observation, real numbers or nothing ---\nlet wx = null;\ntry {\n  const o = $('Weather for DJ2').first().json.currentobservation;\n  if (o && o.Temp && o.Weather) wx = { temp: parseInt(o.Temp, 10), cond: String(o.Weather) };\n} catch (e) {}\nlet vibe = null;\nif (wx) {\n  const c = wx.cond.toLowerCase();\n  vibe = c.includes('rain') ? 'wet and moody' : c.includes('snow') ? 'cold and wintry'\n    : wx.temp <= 40 ? 'chilly' : wx.temp <= 55 ? 'cool' : wx.temp <= 70 ? 'comfortable' : wx.temp <= 85 ? 'warm' : 'hot';\n}\n\n// --- coming up: MegaSeg's own log — accurate to the actual playout ---\nconst aliases = { 'Daryl Hall & John Oates': 'Hall and Oates', 'Daryl Hall and John Oates': 'Hall and Oates', 'Earth, Wind & Fire': 'Earth Wind and Fire', 'Crosby, Stills, Nash & Young': 'CSNY' };\n// AzuraCast titles arrive as 'Song - Album' with (Remaster) tags; strip both to the bare song.\nconst cleanTitle = (t) => String(t || '').split(/\\s+-\\s+/)[0].replace(/\\([^)]*\\)/g, '').replace(/\\s+/g, ' ').trim();\n// News bumpers/IDs come through with a blank artist or an obvious non-music title.\nconst isBumper = (title, artist, duration) => {\n  const t = String(title || '').toLowerCase();\n  const a = String(artist || '').trim().toLowerCase().replace(/\\s+/g, ' ');\n  const dur = Number(duration) || 0;\n  // Ads, IDs, sweepers and spots run short; real songs run 150s+. dur 0 = now-playing (unknown), keep.\n  if (dur > 0 && dur < 90) return true;\n  if (!a) return true;                                        // ads/news/IDs come through blank\n  if (a.replace(/\\s+/g, '') === 'live365') return true;       // Live365 ad injector\n  if (['mellow mountain radio', 'station id', 'app announcement'].includes(a)) return true;\n  // backstop for anything long-form mis-tagged with a real-looking artist\n  return /adbreak|ad break|sweeper|imaging|bumper|station id|\\bliner\\b|\\bpromo\\b|\\bident\\b/.test(t);\n};\nconst comingUp = [];\ntry {\n  const html = String($('Coming Up for DJ1').first().json.data || '');\n  const textC = html\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<hr\\s*\\/?>/gi, '\\n---\\n')\n    .replace(/<[^>]*>/g, '')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&#39;/g, \"'\")\n    .replace(/&quot;/g, '\"')\n    .trim();\n  const junk = new Set(['Mellow Mountain Radio', 'Mellow Mountain Radio Arizona State News', 'Arizona State News', 'CBS', '---']);\n  const lines = textC.split('\\n').map((s) => s.trim()).filter(Boolean).filter((l) => !junk.has(l));\n  for (let i = 0; i + 1 < lines.length && comingUp.length < 2; i += 3) {\n    const title = lines[i];\n    const artist = lines[i + 1];\n    if (title && artist) comingUp.push({ title: cleanTitle(title), artist: aliases[artist] || artist });\n  }\n} catch (e) {}\n\n// --- recently played: AzuraCast history, past plays are always safe facts ---\nconst recent = [];\ntry {\n  const np = $('Ask the airwaves').first().json || {};\n  for (const r of (np.song_history || [])) {\n    const s = r && r.song;\n    if (!s || !s.title) continue;\n    if (isBumper(s.title, s.artist, r.duration)) continue;\n    const title = cleanTitle(s.title);\n    if (!title || title.toLowerCase() === 'mellow mountain radio') continue;\n    recent.push({ title: title.slice(0, 120), artist: aliases[s.artist] || String(s.artist || '').slice(0, 120) });\n    if (recent.length >= 5) break;\n  }\n} catch (e) {}\n\n// --- events: only what a human put on the board, only while upcoming ---\nsd.events = (sd.events || []).filter((e) => e && e.date >= today);\nconst horizon = new Date(phx); horizon.setDate(horizon.getDate() + 10);\nconst hstr = horizon.getFullYear() + '-' + pad(horizon.getMonth() + 1) + '-' + pad(horizon.getDate());\nconst ev = sd.events.find((e) => e.date <= hstr) || null;\n\n// --- mention policy: rolled here AND handed to the model as explicit flags ---\nconst policies = {\n  'early morning': { weather: 0.7, song: 0.6, artist: 0.3 },\n  'morning drive': { weather: 0.5, song: 0.9, artist: 0.7 },\n  'late morning': { weather: 0.4, song: 0.6, artist: 0.4 },\n  'midday': { weather: 0.3, song: 0.7, artist: 0.5 },\n  'afternoon': { weather: 0.2, song: 0.6, artist: 0.4 },\n  'late afternoon': { weather: 0.2, song: 0.7, artist: 0.5 },\n  'evening': { weather: 0.1, song: 0.9, artist: 0.8 },\n  'late night': { weather: 0.2, song: 0.5, artist: 0.3 },\n  'overnight': { weather: 0.3, song: 0.3, artist: 0.2 },\n};\nconst p = policies[bucket] || policies['midday'];\nconst roll = (c) => Math.random() < c;\nconst mWeather = wx ? roll(p.weather) : false;\nconst mSong = comingUp.length ? roll(p.song) : false;\nconst mArtist = comingUp.length ? roll(p.artist) : false;\nconst mEvent = ev ? roll(0.4) : false;\nconst weatherMode = ['exact', 'descriptive', 'mixed'][Math.floor(Math.random() * 3)];\n\n// --- his last few openings, so he never starts the same way twice ---\nconst openings = (sd.scripts || []).filter((s) => s.kind === 'break').slice(-4).map((s) => s.opening).filter(Boolean);\n\nconst system = 'ROLE & TONE\\n\\nYou are writing 30-second radio talk breaks for Marcus Moon, the voice of Mellow Mountain Radio in Sedona, Arizona. Marcus is warm, confident, and casually charming — natural, conversational, human, never stiff or announcer-formal. In the overnight, late night, and early morning buckets he settles into his Quiet Storm register: soft, deep, unhurried, a little flirty — warm and smooth like a slow song, never explicit, never sleazy — talking to ONE listener like it is just the two of them awake in the whole valley.\\n\\nTIME-BASED DELIVERY\\n\\nAdjust tone, pacing, and energy to the provided timeBucket: overnight and late night are low-key, calm, quiet company at a very relaxed pace; early morning is gentle and welcoming with short sentences; morning drive is upbeat, confident, fully awake with light humor; late morning and midday are bright, smooth, friendly; afternoon and late afternoon are easygoing cruising energy; evening is warm and companionable, readier to crack a joke.\\nStrict: never sound rushed overnight, never sound sleepy during drive times, never say \"stay mellow\".\\n\\nWEATHER EXPRESSION\\n\\nWhen the weather flag is YES, use the given mode. EXACT: precise temperature and conditions. DESCRIPTIVE: no numbers, just how it feels. MIXED: descriptive phrasing with a light numeric touch (\"sitting in the mid-40s\"). Match weather tone to the hour; overnight and early morning favor descriptive or mixed.\\n\\nSONG & ARTIST\\n\\nWhen mentioned, be casual — never a formal announcement. Use spoken artist names as given. Keep titles short; drop any parenthetical or edition junk. Coming-up songs are teased as on the way; recently played songs are talked about in past tense. No artist trivia, biography, or chart history — talk about how the music FEELS, never facts about it. If uncertain, be safely vague.\\n\\nHARD RULES — break any of these and the break does not air:\\n- Output ONLY the final DJ script: spoken words only. No stage directions, brackets, quotes around the whole thing, emojis, markdown, or explanations.\\n- Use ONLY the facts on the sheet below. Never invent weather numbers, songs, artists, events, times, or places. If a fact is not on the sheet, it does not exist.\\n- Follow the mention flags exactly. A NO flag means leave that subject out entirely.\\n- About 30 seconds read aloud: 70 to 90 words. Short sentences, written for the ear. Say numbers and dates the way people speak them.\\n- Vary your openings: never start like any recently used opening listed, and avoid stock DJ lines (\"you are listening to\", \"coming up next\").\\n- End by mentioning Mellow Mountain Radio, once, naturally.\\n- Never mention being an AI, a script, or anything behind the curtain. You are Marcus. Full stop.';\n\nconst lines = [];\nlines.push('Current local time: ' + clock + ' on ' + weekday + '. timeBucket: ' + bucket + '.');\nlines.push('');\nlines.push('FACT SHEET (the only facts you may use):');\nif (wx) lines.push('- Weather in Sedona right now: ' + wx.cond + ', ' + wx.temp + ' degrees. Vibe hint: ' + vibe + '.');\nelse lines.push('- Weather: unavailable — do not mention weather at all.');\nif (comingUp.length) lines.push('- Coming up on the station: ' + comingUp.map((s) => '\"' + s.title + '\" by ' + s.artist).join(', then ') + '.');\nif (recent.length) lines.push('- Recently played (past tense only): ' + recent.map((s) => '\"' + s.title + '\" by ' + s.artist).join('; ') + '.');\nif (ev) lines.push('- Local happenings board: ' + ev.name + (ev.place ? ' at ' + ev.place : '') + ', ' + (ev.date === today ? 'today/tonight' : daysN[new Date(ev.date + 'T12:00:00').getDay()] + ' (' + ev.date + ')') + (ev.note ? ' — ' + ev.note : '') + '.');\nlines.push('');\nlines.push('MENTION FLAGS for this break (follow exactly):');\nlines.push('- Weather: ' + (mWeather ? 'YES — mode: ' + weatherMode : 'NO — leave weather out entirely') + '.');\nlines.push('- Coming-up song title: ' + (mSong ? 'YES' : 'NO') + '. Coming-up artist name: ' + (mArtist ? 'YES' : 'NO') + '.');\nlines.push('- Local happening: ' + (mEvent ? 'YES' : 'NO') + '.');\nlines.push('');\nlines.push('Recently used openings (do NOT start like any of these): ' + (openings.length ? openings.join(' | ') : 'none yet') + '.');\nlines.push('');\nlines.push('TASK: Write ONE DJ break.');\n\nreturn [{ json: { system, user: lines.join('\\n'), meta: { bucket, weatherMode, clock, flags: { mWeather, mSong, mArtist, mEvent } } } }];"
+      },
+      "id": "7c10731d-0be4-4891-ae47-b78b2eb508c6",
+      "name": "Build the fact sheet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3328,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Last line of defense before the voice booth: spoken words only,\n// and refuse to air anything that leaked the seams.\nconst r = $input.first().json || {};\nlet text = '';\ntry {\n  const blocks = Array.isArray(r.content) ? r.content : [];\n  const tb = blocks.find((b) => b && b.type === 'text');\n  if (tb) text = tb.text;\n} catch (e) {}\nif (!text && typeof r.text === 'string') text = r.text;\nif (!text && r.message && r.message.content) text = r.message.content;\ntext = String(text || '').trim();\nif (!text) throw new Error('No script came back from the DJ brain');\ntext = text.replace(/\\[[^\\]]*\\]/g, ' ');\ntext = text.replace(/^[\\\"'\\u201c\\u2018]+|[\\\"'\\u2019\\u201d]+$/g, '');\ntext = text.replace(/[*_#>`]+/g, ' ');\ntext = text.replace(/\\s+/g, ' ').trim();\nfor (const bad of [/as an ai/i, /language model/i, /\\bfact sheet\\b/i, /\\bmention flag/i]) {\n  if (bad.test(text)) throw new Error('Script leaked something off-air: ' + text.slice(0, 80));\n}\nconst words = text.split(' ').length;\nif (words < 25) throw new Error('Script came back too short to air: ' + text);\nreturn [{ json: { script: text, words, opening: text.split(' ').slice(0, 7).join(' ') } }];"
+      },
+      "id": "b9255598-d8ce-4470-b0a4-5e1bdafc4f02",
+      "name": "Clean the copy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3776,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/rWyjfFeMZ6PxkHqD3wGC?output_format=mp3_44100_128",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "audio/mpeg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.script, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.55, similarity_boost: 0.75, style: 0.35, use_speaker_boost: true } }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 120000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "f543d73f-1f02-4b23-bff5-55791a21a329",
+      "name": "Marcus finds his voice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4000,
+        496
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oLKJAWs4Gt9CUmdU",
+          "name": "ElevenLabs API Key (Marcus Moon)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "path": "/Charles Helstein/Quite Storm Show/qsvo.mp3",
+        "binaryData": true
+      },
+      "id": "c3a78b01-cebb-4166-8908-030e39313c64",
+      "name": "Quiet Storm Liner",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        4208,
+        496
+      ],
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Write tonight's entry in the logbook. Dropbox overwrites the same\n// filename, so stale breaks retire themselves — the log is the archive.\nconst sd = $getWorkflowStaticData('global');\nsd.scripts = sd.scripts || [];\nconst c = $('Clean the copy').first().json;\nsd.scripts.push({ at: new Date().toISOString(), kind: 'break', words: c.words, opening: c.opening, script: c.script });\nif (sd.scripts.length > 60) sd.scripts = sd.scripts.slice(-60);\nreturn [{ json: { saved: true, kind: 'break', words: c.words } }];"
+      },
+      "id": "29b5a443-aba5-45d5-b65d-59f6aebc32ec",
+      "name": "Sign the logbook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4432,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "59 3 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "19ec4f79-66df-4dbe-b7af-34631374696a",
+      "name": "Intro time (weekdays 3:59a)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        2448,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://forecast.weather.gov/MapClick.php?lat=34.8697&lon=-111.7610&FcstType=json",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "12d680e7-d2c1-450c-8533-67d68a90b6a3",
+      "name": "Weather for the intro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2672,
+        1056
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// A short brief for the show intro — same honesty rules as the breaks.\nconst sd = $getWorkflowStaticData('global');\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst hour = phx.getHours();\nconst clock = (((hour + 11) % 12) + 1) + ':' + pad(phx.getMinutes()) + ' ' + (hour >= 12 ? 'PM' : 'AM');\nconst bucket = hour < 5 ? 'overnight' : hour < 7 ? 'early morning' : 'late night';\n\nlet wxLine = 'Weather: unavailable — do not mention it.';\ntry {\n  const o = $('Weather for the intro').first().json.currentobservation;\n  if (o && o.Temp && o.Weather) {\n    const t = parseInt(o.Temp, 10);\n    const c = String(o.Weather).toLowerCase();\n    const vibe = c.includes('rain') ? 'wet and moody' : c.includes('snow') ? 'cold and wintry' : t <= 40 ? 'chilly' : t <= 55 ? 'cool' : t <= 70 ? 'comfortable' : t <= 85 ? 'warm' : 'hot';\n    wxLine = 'Weather conditions: ' + o.Weather + '. Vibe hint: ' + vibe + '. (Weather mention is optional and should stay descriptive — no numbers.)';\n  }\n} catch (e) {}\n\nconst openings = (sd.scripts || []).filter((s) => s.kind === 'intro').slice(-3).map((s) => s.opening).filter(Boolean);\n\nconst system = 'Write ONE fresh intro for Marcus Moon hosting The Quiet Storm on Mellow Mountain Radio.\\n\\nTone & Style:\\n- Warm, relaxed, and confident\\n- Conversational and natural — like talking to one listener, not an audience\\n- Smooth late-night energy with a soft, flirty warmth — never announcer-formal, never sleazy\\n\\nGuidelines:\\n- About 25-30 seconds when read out loud (roughly 65-85 words)\\n- Acknowledge the time of night without stating exact times\\n- Set a calm, intimate mood for slow jams and mellow tracks\\n- The Quiet Storm plays timeless RnB and Soul\\n- No cliches, no hype phrases, no call letters unless it feels organic\\n- Thank the audience for joining and listening to the show\\n- Never say \"stay mellow\"\\n\\nHard rules:\\n- Output ONLY the final DJ script — spoken words only, no stage directions, brackets, emojis, or explanations\\n- Use only the facts provided; never invent weather numbers, events, or names\\n- Do NOT copy the example opening below, and do not start like any recently used opening listed\\n- Never mention being an AI or anything behind the curtain\\n\\nExample of the register (do not reuse its opening): From the Red Rocks to the night sky, this is the Quiet Storm. Two hours of timeless RnB and Soul. Where the groove is gentle and the emotion runs deep. Settle in, breathe easy and let the music find you. You are with Marcus Moon on Mellow Mountain Radio. Let the Quiet Storm make your night.';\n\nconst user = 'Current local time: ' + clock + '. timeBucket: ' + bucket + '.\\n' + wxLine + '\\nRecently used intro openings (do NOT start like any of these): ' + (openings.length ? openings.join(' | ') : 'none yet') + '.';\n\nreturn [{ json: { system, user } }];"
+      },
+      "id": "9b19c047-6fc8-4dfa-9c4d-20fd241af090",
+      "name": "Build the intro brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2896,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json || {};\nlet text = '';\ntry {\n  const blocks = Array.isArray(r.content) ? r.content : [];\n  const tb = blocks.find((b) => b && b.type === 'text');\n  if (tb) text = tb.text;\n} catch (e) {}\nif (!text && typeof r.text === 'string') text = r.text;\nif (!text && r.message && r.message.content) text = r.message.content;\ntext = String(text || '').trim();\nif (!text) throw new Error('No intro came back from the DJ brain');\ntext = text.replace(/\\[[^\\]]*\\]/g, ' ');\ntext = text.replace(/^[\\\"'\\u201c\\u2018]+|[\\\"'\\u2019\\u201d]+$/g, '');\ntext = text.replace(/[*_#>`]+/g, ' ');\ntext = text.replace(/\\s+/g, ' ').trim();\nfor (const bad of [/as an ai/i, /language model/i]) {\n  if (bad.test(text)) throw new Error('Intro leaked something off-air: ' + text.slice(0, 80));\n}\nconst words = text.split(' ').length;\nif (words < 20) throw new Error('Intro came back too short to air: ' + text);\nreturn [{ json: { script: text, words, opening: text.split(' ').slice(0, 7).join(' ') } }];"
+      },
+      "id": "8ba1cbcd-ab54-4b8a-96fd-3790cfe03027",
+      "name": "Clean the intro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3328,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/rWyjfFeMZ6PxkHqD3wGC?output_format=mp3_44100_128",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "audio/mpeg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.script, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.55, similarity_boost: 0.75, style: 0.35, use_speaker_boost: true } }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 120000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "40d2abd7-6b62-4987-8001-b057487786b8",
+      "name": "Marcus voices the intro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3552,
+        1056
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oLKJAWs4Gt9CUmdU",
+          "name": "ElevenLabs API Key (Marcus Moon)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "path": "/Charles Helstein/Quite Storm Show/Quiet Storm Show Intro V2.mp3",
+        "binaryData": true
+      },
+      "id": "ae441903-6ff3-4303-a516-341a1cf7e9b9",
+      "name": "Quiet Storm Intro",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        3776,
+        1056
+      ],
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sd = $getWorkflowStaticData('global');\nsd.scripts = sd.scripts || [];\nconst c = $('Clean the intro').first().json;\nsd.scripts.push({ at: new Date().toISOString(), kind: 'intro', words: c.words, opening: c.opening, script: c.script });\nif (sd.scripts.length > 60) sd.scripts = sd.scripts.slice(-60);\nreturn [{ json: { saved: true, kind: 'intro', words: c.words } }];"
+      },
+      "id": "80f721b6-e9bd-44a9-a635-52078f22fe7b",
+      "name": "Sign the logbook (intro)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4000,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "path": "kazm-moon-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "289be4aa-a2b0-42ef-8921-9c30ec29963e",
+      "name": "Curate the events board",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        1392
+      ],
+      "webhookId": "kazm-moon-events"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The events board: a human writes it, Marcus only ever reads it.\n// ?k=moon-2026&do=add&date=YYYY-MM-DD&name=...&place=...&note=...\n// ?k=moon-2026&do=remove&i=0        ?k=moon-2026 (list)\nconst q = $input.first().json.query || {};\nconst sd = $getWorkflowStaticData('global');\nsd.events = sd.events || [];\nif (q.k !== 'moon-2026') return [{ json: { ok: false, why: 'bad key' } }];\nconst act = q.do || 'list';\nif (act === 'add') {\n  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(q.date || '') || !q.name) {\n    return [{ json: { ok: false, why: 'need date=YYYY-MM-DD and name=' } }];\n  }\n  sd.events.push({ date: q.date, name: String(q.name).slice(0, 120), place: String(q.place || '').slice(0, 80), note: String(q.note || '').slice(0, 200) });\n  sd.events.sort((a, b) => (a.date < b.date ? -1 : 1));\n}\nif (act === 'remove') {\n  const i = parseInt(q.i, 10);\n  if (!isNaN(i) && i >= 0 && i < sd.events.length) sd.events.splice(i, 1);\n}\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst today = phx.getFullYear() + '-' + pad(phx.getMonth() + 1) + '-' + pad(phx.getDate());\nsd.events = sd.events.filter((e) => e.date >= today);\nreturn [{ json: { ok: true, events: sd.events.map((e, i) => ({ i, ...e })) } }];"
+      },
+      "id": "0694eb10-ee69-4e40-959c-26bdd4940a86",
+      "name": "Tend the board",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2656,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "9f9ca7a8-1b7e-4a9c-941c-4f17e2d8bf3f",
+      "name": "Respond to curator",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2848,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "path": "kazm-moon-log",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4520088e-4422-4574-abf4-a0a6f1350457",
+      "name": "Peek at the logbook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        1584
+      ],
+      "webhookId": "kazm-moon-log"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read the last ten scripts — what Marcus said and when he said it.\nconst q = $input.first().json.query || {};\nconst sd = $getWorkflowStaticData('global');\nif (q.k !== 'moon-2026') return [{ json: { ok: false, why: 'bad key' } }];\nconst scripts = (sd.scripts || []).slice(-10).reverse();\nreturn [{ json: { ok: true, scripts, events: sd.events || [] } }];"
+      },
+      "id": "93e72efd-4971-4ccc-bd74-d3f54ec6f83e",
+      "name": "Read the logbook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2656,
+        1584
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "c4a31fa0-a851-49db-bdac-43f80c226310",
+      "name": "Respond with the log",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2848,
+        1584
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://forecast.weather.gov/MapClick.php?lat=34.8697&lon=-111.7610&FcstType=json",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "101d37c5-125f-4860-b0c9-1ec56358f35a",
+      "name": "Weather for DJ2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2672,
+        496
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://storage.googleapis.com/mellowmountain-radio-files/ingest/megaSeg/Logs/ComingUp.html",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ts",
+              "value": "={{ $now.toMillis() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "00bb860c-61da-40b8-b14e-b937bb91be2c",
+      "name": "Coming Up for DJ1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2896,
+        496
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 4096, thinking: { type: 'adaptive' }, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "claude-break-node-01",
+      "name": "Claude writes the break",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3488,
+        496
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ungqciecIEG6Gj6Y",
+          "name": "Anthropic API Key (Marcus Moon)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 4096, thinking: { type: 'adaptive' }, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "claude-intro-node-01",
+      "name": "Claude writes the intro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3120,
+        1056
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ungqciecIEG6Gj6Y",
+          "name": "Anthropic API Key (Marcus Moon)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Break time strikes": {
+      "main": [
+        [
+          {
+            "node": "Weather for DJ2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make one now (remote)": {
+      "main": [
+        [
+          {
+            "node": "Check the key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check the key": {
+      "main": [
+        [
+          {
+            "node": "Weather for DJ2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask the airwaves": {
+      "main": [
+        [
+          {
+            "node": "Build the fact sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build the fact sheet": {
+      "main": [
+        [
+          {
+            "node": "Claude writes the break",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean the copy": {
+      "main": [
+        [
+          {
+            "node": "Marcus finds his voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcus finds his voice": {
+      "main": [
+        [
+          {
+            "node": "Quiet Storm Liner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quiet Storm Liner": {
+      "main": [
+        [
+          {
+            "node": "Sign the logbook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intro time (weekdays 3:59a)": {
+      "main": [
+        [
+          {
+            "node": "Weather for the intro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather for the intro": {
+      "main": [
+        [
+          {
+            "node": "Build the intro brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build the intro brief": {
+      "main": [
+        [
+          {
+            "node": "Claude writes the intro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean the intro": {
+      "main": [
+        [
+          {
+            "node": "Marcus voices the intro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcus voices the intro": {
+      "main": [
+        [
+          {
+            "node": "Quiet Storm Intro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quiet Storm Intro": {
+      "main": [
+        [
+          {
+            "node": "Sign the logbook (intro)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Curate the events board": {
+      "main": [
+        [
+          {
+            "node": "Tend the board",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tend the board": {
+      "main": [
+        [
+          {
+            "node": "Respond to curator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Peek at the logbook": {
+      "main": [
+        [
+          {
+            "node": "Read the logbook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the logbook": {
+      "main": [
+        [
+          {
+            "node": "Respond with the log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather for DJ2": {
+      "main": [
+        [
+          {
+            "node": "Coming Up for DJ1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coming Up for DJ1": {
+      "main": [
+        [
+          {
+            "node": "Ask the airwaves",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude writes the break": {
+      "main": [
+        [
+          {
+            "node": "Clean the copy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude writes the intro": {
+      "main": [
+        [
+          {
+            "node": "Clean the intro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
