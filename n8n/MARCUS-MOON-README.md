@@ -140,6 +140,25 @@ angles well-distributed and **0% back-to-back repeats**. Feeds:
 `Ask the airwaves → Fetch library events → Fetch concerts → Fetch festivals →
 Fetch showtimes → Build the fact sheet`.
 
+**Schedule (aligned to the MegaSeg Quiet Storm show, AZ local time).** The
+workflow's timezone is pinned to `America/Phoenix` (Arizona has no DST, so the
+crons fire at the intended AZ time year-round regardless of the n8n server's
+timezone). Each generation fires ~4 minutes ahead of when MegaSeg plays the
+file, leaving room for Claude + ElevenLabs + the Dropbox upload/sync to finish:
+
+| MegaSeg plays (AZ) | Content | n8n fires | Dropbox file |
+|---|---|---|---|
+| 4:00:02a | Quiet Storm Intro | 3:56a (`Intro time`) | `Quiet Storm Show Intro V2.mp3` |
+| 4:20:13a | DJ VO break | 4:16a (`Break time strikes`) | `qsvo.mp3` |
+| 4:40:13a | DJ VO break | 4:36a | `qsvo.mp3` |
+| 5:10:13a | DJ VO break | 5:06a | `qsvo.mp3` |
+| 5:30:13a | DJ VO break | 5:26a | `qsvo.mp3` |
+
+Both triggers run **Mon–Fri only** (`* * 1-5`), matching the show's weekday
+schedule (the 5:00a Station IDs slot and the 5:55a outro are handled by MegaSeg,
+not this workflow). If the Quiet Storm ever airs weekends, change the two
+schedule triggers' day-of-week from `1-5` to `*`.
+
 **Test it** with the same webhook as below
 (`.../webhook/kazm-moon-now?k=moon-2026`); the result MP3 lands in the Dropbox
 path on `Quiet Storm Liner`, and the last 10 scripts are visible via the

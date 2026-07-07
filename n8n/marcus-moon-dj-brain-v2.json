@@ -7,11 +7,11 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "20,40 4 * * *"
+              "expression": "16,36 4 * * 1-5"
             },
             {
               "field": "cronExpression",
-              "expression": "10,30 5 * * *"
+              "expression": "6,26 5 * * 1-5"
             }
           ]
         }
@@ -178,13 +178,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "59 3 * * 1-5"
+              "expression": "56 3 * * 1-5"
             }
           ]
         }
       },
       "id": "19ec4f79-66df-4dbe-b7af-34631374696a",
-      "name": "Intro time (weekdays 3:59a)",
+      "name": "Intro time (weekdays 3:56a)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -684,17 +684,6 @@
         ]
       ]
     },
-    "Intro time (weekdays 3:59a)": {
-      "main": [
-        [
-          {
-            "node": "Weather for the intro",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Weather for the intro": {
       "main": [
         [
@@ -870,11 +859,23 @@
           }
         ]
       ]
+    },
+    "Intro time (weekdays 3:56a)": {
+      "main": [
+        [
+          {
+            "node": "Weather for the intro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": true,
-    "callerPolicy": "workflowsFromSameOwner"
+    "callerPolicy": "workflowsFromSameOwner",
+    "timezone": "America/Phoenix"
   }
 }
