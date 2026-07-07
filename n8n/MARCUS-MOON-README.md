@@ -80,6 +80,24 @@ as everything else — real fetched facts only):
 All feed fetches are `onError: continueRegularOutput`, so a feed being down
 never blocks a break.
 
+**Website spotlights.** Marcus also promotes the station site's features. A
+curated list of ~14 real pages lives in `Build the fact sheet` — each with a
+factual one-line hook — e.g. **Chakras & Tarot** (the full 78-card deck + a
+card of the day), **Sound Healing** (the KAZM Harmonic Stack — binaural tone
+sessions), **Astrology**, **Cosmic Conditions**, the **Song Time Machine**, the
+**Listeners' Lounge**, **Jeep Trails**, **Events & Adventures** (trail / creek /
+ski conditions), **Movies** (Sedona Film Festival), **Seen around Sedona**
+(wildlife), **Contests**, and more. When a spotlight is featured he names the
+page and points listeners to `mellowmountainradio.com`. Recently-used
+spotlights are tracked in `staticData` (last 6) so he doesn't repeat.
+
+**One feature per break.** The three "extra topics" — an Around-Sedona
+happening, an upcoming Arizona show, and a website spotlight — are **mutually
+exclusive**: at most one is flagged `YES` per break (weighted toward website
+spotlights overnight, since tarot / sound healing / cosmic conditions suit the
+Quiet Storm). Weather and coming-up song/artist mentions remain independent.
+This keeps a break from cramming five subjects into 80 words.
+
 **Test it** with the same webhook as below
 (`.../webhook/kazm-moon-now?k=moon-2026`); the result MP3 lands in the Dropbox
 path on `Quiet Storm Liner`, and the last 10 scripts are visible via the
