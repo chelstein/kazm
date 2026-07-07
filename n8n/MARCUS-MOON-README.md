@@ -89,6 +89,19 @@ as everything else — real fetched facts only):
 All feed fetches are `onError: continueRegularOutput`, so a feed being down
 never blocks a break.
 
+**Reliability.** Every external call retries automatically: the critical path
+(Claude, ElevenLabs, both Dropbox uploads) retries **3×** with 5s between
+tries; the data fetches (weather, AzuraCast, all four site feeds) retry **2×**
+with 3s between tries, then fail soft as before. Worst case with retries still
+finishes in ~1 minute, well inside the 4-minute schedule lead. If a run fails
+outright despite retries, MegaSeg simply replays the previous break — the one
+known failure mode to keep an eye on, since a replayed break can state stale
+"right now" facts.
+
+**On-air leak filter.** `Clean the copy` / `Clean the intro` reject any script
+that leaks prompt scaffolding before it can be voiced — "as an AI", "fact
+sheet", "mention flag", "angle for this break", "self-ID", "timeBucket".
+
 **Website spotlights.** Marcus also promotes the station site's features. A
 curated list of ~14 real pages lives in `Build the fact sheet` — each with a
 factual one-line hook — e.g. **Chakras & Tarot** (the full 78-card deck + a
