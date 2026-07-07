@@ -117,7 +117,12 @@ website; drive times favor weather).
 > equal footing (~15% of breaks, same as weather / local / concert / movie /
 > website), and songs are excluded from the *secondary* slot — so a non-song
 > break never also drifts into a song. Result: a genuinely different lead every
-> hour, with music as just one of the things Marcus might talk about. The director:
+> hour, with music as just one of the things Marcus might talk about.
+
+**Self-identification.** Independent of the angle, `mSelfID` rolls **~40%** per
+break; when it hits, the fact sheet tells Marcus to work his on-air name into
+the sign-off ("this is Marcus Moon on Mellow Mountain Radio"). The rest of the
+time he just closes on the station name, so his name never feels forced. The director:
 
 - Picks a **primary** angle, **excluding the last 3 used** (anti-repeat memory
   in `staticData.recentAngles`) — so consecutive breaks never lead with the
