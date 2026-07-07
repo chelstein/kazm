@@ -59,6 +59,27 @@ Marcus only ever references real songs:
   (blank artist, `Live365`, `Mellow Mountain Radio`, `Station ID`,
   `App Announcement`) and a title-token backstop.
 
+**Current events (live from the station site).** Three `Fetch …` HTTP nodes
+pull event feeds from the public `chelstein/mellowmountainradio` repo
+(`raw.githubusercontent.com/.../main/{library-events,concerts,festivals}.json`),
+chained `Ask the airwaves → Fetch library events → Fetch concerts →
+Fetch festivals → Build the fact sheet`. GitHub raw serves `.json` as
+`text/plain`, so the node body arrives unparsed under `.data`; a `feed()`
+helper in `Build the fact sheet` `JSON.parse`s it. The fact sheet then exposes
+two event slots, each with its own mention flag (same anti-hallucination model
+as everything else — real fetched facts only):
+
+- **Around Sedona** — the human-curated events board plus Community Library
+  Sedona events, within 21 days. A curated-board entry wins outright; otherwise
+  it rotates among the soonest few.
+- **Upcoming show in Arizona** — concerts + festivals filtered to `state ==
+  "AZ"`, within 60 days, Verde-Valley cities preferred. Rotates among the
+  soonest few on-brand shows (the concerts feed is already genre-curated to the
+  station's soft/yacht-rock format).
+
+All feed fetches are `onError: continueRegularOutput`, so a feed being down
+never blocks a break.
+
 **Test it** with the same webhook as below
 (`.../webhook/kazm-moon-now?k=moon-2026`); the result MP3 lands in the Dropbox
 path on `Quiet Storm Liner`, and the last 10 scripts are visible via the
