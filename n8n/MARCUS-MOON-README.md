@@ -65,11 +65,16 @@ rule screen cannot. Verified offline: 300 blocks picked against the real
 database, zero rule conflicts.
 
 **Shift-opening intro.** The **first break of each shift** (6:21 AM /
-12:21 PM / 6:21 PM run) is the DJ's welcome: they greet Sedona, introduce
-themselves by name (self-ID forced on, placed early), and tell listeners
-they're aboard for the morning / afternoon / evening. That break never
-leads with a song — the DJ opens with weather, an event, or the website
-woven into the greeting. Subsequent breaks are normal.
+12:21 PM / 6:21 PM run) is the DJ's show open, and it runs long —
+**90–150 words (~30–60 seconds)** regardless of the DJ's normal break
+length (override per DJ with roster `introWordRange`). They greet Sedona
+and the Verde Valley, introduce themselves by name (self-ID forced on,
+placed early), tell listeners they're aboard **for the next six hours**,
+and sell the ride ahead — great music, hit after hit, you're in for a
+treat — in their own words, explicitly told to phrase it differently from
+their recent openings so no two days sound alike. That break never leads
+with a song — weather, an event, or the website is woven into the
+greeting. Subsequent breaks are normal length.
 
 **Per-shift song quota.** Each daypart DJ does **at least 3 song
 lead-in/lead-out breaks per 6-break shift** (only counted when song control
