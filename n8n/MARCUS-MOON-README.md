@@ -43,10 +43,25 @@ run also downloads the MegaSeg Database and picks **4 songs from the daytime
 rotation** — weighted 60% `* A. HEAVY ROTATION` / 30% `***** B. MEDIUM` /
 10% `********* C. LOW` (pools ~151/151/328), skipping recently-aired titles
 and a shared 60-song no-repeat memory — one **lead-in** and three **after**,
-then rewrites the shared MegaSeg playlist `Playlists/Daytime DJ VO`:
-lead-in row → the on-duty DJ's VO row → the three songs. The DJ can
+then rewrites **that DJ's own MegaSeg playlist** (`Playlists/Burt DJ VO`,
+`Canyon Jack DJ VO`, `Kaley DJ VO` — from the roster's `playlistName`, or
+`<name> DJ VO`): lead-in row → the DJ's VO row → the three songs. The DJ can
 back-announce the lead-in, tease the next songs, or bracket both — all
 guaranteed, same as Marcus.
+
+**MegaSeg Playlist Rules compliance.** The station runs Playlist Rules
+(artist separation 30 min, title separation 30 min, "prevent tracks from
+playing in the same hour as yesterday"), and MegaSeg will substitute any
+inserted song that violates them — which would falsify the DJ's
+back-announce/tease. So every pick is screened (`ruleSafe`, never relaxed)
+with margin to spare: nothing played in the last **90 minutes** (per the
+library's `15]` Last Played), nothing that played **yesterday during this
+same clock hour**, **distinct artists and titles within the block**, no
+artist heard on air in the last hour (AzuraCast history), and no artist with
+any library track played in the last **60 minutes**. Freshness preferences
+(recently-aired titles, the 60-song memory) can relax if pools run dry; the
+rule screen cannot. Verified offline: 300 blocks picked against the real
+database, zero rule conflicts.
 
 **Per-shift song quota.** Each daypart DJ does **at least 3 song
 lead-in/lead-out breaks per 6-break shift** (only counted when song control
@@ -69,9 +84,10 @@ needs the record to build the VO playlist row). Until then breaks still
 generate and upload, but no playlist is written and no songs are promised —
 so scripts are never inaccurate during rollout. **One-time setup in MegaSeg:**
 add the three files in `/Charles Helstein/DJ Breaks/` to the MegaSeg library,
-then create Events inserting playlist **"Daytime DJ VO"** at `:20:13` each
-hour, 6:00 AM–11:59 PM (the n8n run at `:16` stays ~4 minutes ahead, like
-the Quiet Storm).
+then create Events at `:20:13` each hour inserting the playlist that matches
+the daypart — **"Burt DJ VO"** for the 6:00–11:59 AM hours, **"Canyon Jack
+DJ VO"** for noon–5:59 PM, **"Kaley DJ VO"** for 6:00–11:59 PM (the n8n run
+at `:16` stays ~4 minutes ahead, like the Quiet Storm).
 
 ## Two files in this folder
 
