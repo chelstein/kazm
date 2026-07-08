@@ -338,18 +338,24 @@ crons fire at the intended AZ time year-round regardless of the n8n server's
 timezone). Each generation fires ~4 minutes ahead of when MegaSeg plays the
 file, leaving room for Claude + ElevenLabs + the Dropbox upload/sync to finish:
 
+The Quiet Storm now runs **midnight–6 AM** (Main Events switches to the
+Quiet Storm events set at 11:59:50 PM Mon–Fri, back at 5:56 AM):
+
 | MegaSeg plays (AZ) | Content | n8n fires | Dropbox file |
 |---|---|---|---|
-| 4:00:02a | Quiet Storm Intro | 3:56a (`Intro time`) | `Quiet Storm Show Intro V2.mp3` |
-| 4:20:13a | DJ VO break | 4:16a (`Break time strikes`) | `qsvo.mp3` |
-| 4:40:13a | DJ VO break | 4:36a | `qsvo.mp3` |
-| 5:10:13a | DJ VO break | 5:06a | `qsvo.mp3` |
-| 5:30:13a | DJ VO break | 5:26a | `qsvo.mp3` |
+| 12:00:02a | Quiet Storm Intro | 11:56p Mon–Fri (`Intro time`) | `Quiet Storm Show Intro V2.mp3` |
+| 1:25:13a | DJ VO break | 1:21a (`Break time strikes`) | `qsvo.mp3` |
+| 2:25:13a | DJ VO break | 2:21a | `qsvo.mp3` |
+| 3:25:13a | DJ VO break | 3:21a | `qsvo.mp3` |
+| 4:25:13a | DJ VO break | 4:21a | `qsvo.mp3` |
 
-Both triggers run **Mon–Fri only** (`* * 1-5`), matching the show's weekday
-schedule (the 5:00a Station IDs slot and the 5:55a outro are handled by MegaSeg,
-not this workflow). If the Quiet Storm ever airs weekends, change the two
-schedule triggers' day-of-week from `1-5` to `*`.
+The intro cron runs Mon–Fri **nights** (`56 23 * * 1-5`) and the break cron
+runs the **following mornings**, Tue–Sat (`21 1-4 * * 2-6`), since a weekday
+midnight show straddles the calendar day. The Quiet Storm events set also
+carries the same `:24 Past the hour → Rules Off` / `:45 Past the hour →
+Rules On` pair as Main Events, so Marcus's promised songs are
+substitution-proof during his show too (the 5:55a outro and Station IDs
+are handled by MegaSeg, not this workflow).
 
 **Test it** with the same webhook as below
 (`.../webhook/kazm-moon-now?k=moon-2026`); the result MP3 lands in the Dropbox

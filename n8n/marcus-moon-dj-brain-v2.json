@@ -7,11 +7,7 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "16,36 4 * * 1-5"
-            },
-            {
-              "field": "cronExpression",
-              "expression": "6,26 5 * * 1-5"
+              "expression": "21 1-4 * * 2-6"
             }
           ]
         }
@@ -187,13 +183,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "56 3 * * 1-5"
+              "expression": "56 23 * * 1-5"
             }
           ]
         }
       },
       "id": "19ec4f79-66df-4dbe-b7af-34631374696a",
-      "name": "Intro time (weekdays 3:56a)",
+      "name": "Intro time (weeknights 11:56p)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -976,17 +972,6 @@
         ]
       ]
     },
-    "Intro time (weekdays 3:56a)": {
-      "main": [
-        [
-          {
-            "node": "Weather for the intro",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Fetch the music library": {
       "main": [
         [
@@ -1025,6 +1010,17 @@
         [
           {
             "node": "Sign the logbook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intro time (weeknights 11:56p)": {
+      "main": [
+        [
+          {
+            "node": "Weather for the intro",
             "type": "main",
             "index": 0
           }
