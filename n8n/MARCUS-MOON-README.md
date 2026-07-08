@@ -360,13 +360,17 @@ playlist `Playlists/Quiet Storm Intro` to intro row → that exact song →
 `:load Quiet Storm` — so the named song is guaranteed to start the show.
 (The previous "Intro Outro Bed Music" row in that playlist was dropped so
 the named song truly plays next. The one-off produced intro at V1 is now
-overwritten nightly by design; the produced outro at
-`Quiet Storm Show IOutro V1.mp3` remains static. `Intro V2` is legacy and
-no longer written.)
+overwritten nightly by design, and the **outro regenerates nightly too**:
+at 5:51a a third chain writes a fresh close (thanks the listeners, gives
+the return time — weeknights, midnight to six — and hands into the
+morning) over the same Moments in Love bed, saved to
+`Quiet Storm Show IOutro V1.mp3`, which the "Quiet Storm Outro" playlist
+already references. `Intro V2` is legacy and no longer written.)
 | 1:25:13a | DJ VO break | 1:21a (`Break time strikes`) | `qsvo.mp3` |
 | 2:25:13a | DJ VO break | 2:21a | `qsvo.mp3` |
 | 3:25:13a | DJ VO break | 3:21a | `qsvo.mp3` |
 | 4:25:13a | DJ VO break | 4:21a | `qsvo.mp3` |
+| 5:55a | Quiet Storm Outro | 5:51a Tue–Sat (`Outro time`) | `Quiet Storm Show IOutro V1.mp3` |
 
 The intro cron runs Mon–Fri **nights** (`56 23 * * 1-5`) and the break cron
 runs the **following mornings**, Tue–Sat (`21 1-4 * * 2-6`), since a weekday

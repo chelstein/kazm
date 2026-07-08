@@ -919,6 +919,301 @@
         "jsCode": "// Use the bed-mixed intro when the mix produced one; otherwise the dry voice.\nlet out = null;\ntry {\n  const m = $('Load the intro mix').first();\n  if (m && m.binary && m.binary.data) out = { json: { mixed: true }, binary: m.binary };\n} catch (e) {}\nif (!out) out = { json: { mixed: false }, binary: $('Unpack the intro voice').first().binary };\nreturn [out];"
       },
       "id": "6c43d333-a5fa-4534-ba41-1b0297988b49"
+    },
+    {
+      "name": "Outro time (5:51a Tue–Sat)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        1200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "51 5 * * 2-6"
+            }
+          ]
+        }
+      },
+      "id": "d14a0bbf-87ed-46d9-b5eb-9b2a562abe31"
+    },
+    {
+      "name": "Weather for the outro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        350,
+        1200
+      ],
+      "parameters": {
+        "url": "https://forecast.weather.gov/MapClick.php?lat=34.8697&lon=-111.7610&FcstType=json",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "id": "e65981f2-e02d-4fb5-84e6-8b40f918b2e4"
+    },
+    {
+      "name": "Build the outro brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        1200
+      ],
+      "parameters": {
+        "jsCode": "// A short brief for the show outro — thanks, and the return time.\nconst sd = $getWorkflowStaticData('global');\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst hour = phx.getHours();\nconst clock = (((hour + 11) % 12) + 1) + ':' + pad(phx.getMinutes()) + ' ' + (hour >= 12 ? 'PM' : 'AM');\n\nlet wxLine = 'Weather: unavailable — do not mention it.';\ntry {\n  const o = $('Weather for the outro').first().json.currentobservation;\n  if (o && o.Temp && o.Weather) {\n    const t = parseInt(o.Temp, 10);\n    const c = String(o.Weather).toLowerCase();\n    const vibe = c.includes('rain') ? 'wet and moody' : c.includes('snow') ? 'cold and wintry' : t <= 40 ? 'chilly' : t <= 55 ? 'cool' : t <= 70 ? 'comfortable' : t <= 85 ? 'warm' : 'hot';\n    wxLine = 'Weather conditions as morning arrives: ' + o.Weather + '. Vibe hint: ' + vibe + '. (Weather mention is optional and should stay descriptive — no numbers.)';\n  }\n} catch (e) {}\n\nconst openings = (sd.scripts || []).filter((s) => s.kind === 'outro').slice(-3).map((s) => s.opening).filter(Boolean);\n\nconst system = 'Write ONE fresh outro for Marcus Moon closing The Quiet Storm on Mellow Mountain Radio.\\n\\nTone & Style:\\n- Warm, unhurried, grateful — the show breathing out as morning arrives\\n- Conversational and natural, talking to one listener\\n- The soft late-night register easing into daybreak — never announcer-formal\\n\\nGuidelines:\\n- About 25-30 seconds when read out loud (roughly 65-85 words)\\n- THANK the listeners warmly for spending the night with the show — that is the heart of this outro\\n- ALWAYS tell them when the show returns: weeknights, midnight to six, on Mellow Mountain Radio — phrased naturally\\n- Acknowledge the morning arriving without stating exact times\\n- Hand them gently into their day\\n- No cliches, no hype phrases, never say \"stay mellow\"\\n\\nHard rules:\\n- Output ONLY the final DJ script — spoken words only, no stage directions, brackets, emojis, or explanations\\n- Use only the facts provided; never invent weather numbers, events, or names\\n- Do not start like any recently used opening listed\\n- Never mention being an AI or anything behind the curtain';\n\nconst user = 'Current local time: ' + clock + ' (the show is ending; the morning shift follows).\\n' + wxLine + '\\nRecently used outro openings (do NOT start like any of these): ' + (openings.length ? openings.join(' | ') : 'none yet') + '.';\n\nreturn [{ json: { system, user } }];"
+      },
+      "id": "6b3b8b2d-d8f3-4c6a-a6ce-dfb58fe61c48"
+    },
+    {
+      "name": "Claude writes the outro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        650,
+        1200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 4096, thinking: { type: 'adaptive' }, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ungqciecIEG6Gj6Y",
+          "name": "Anthropic API Key (Marcus Moon)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "a44b91e8-a726-4638-b534-87e1eaeeea1f"
+    },
+    {
+      "name": "Clean the outro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        1200
+      ],
+      "parameters": {
+        "jsCode": "const r = $input.first().json || {};\nlet text = '';\ntry {\n  const blocks = Array.isArray(r.content) ? r.content : [];\n  const tb = blocks.find((b) => b && b.type === 'text');\n  if (tb) text = tb.text;\n} catch (e) {}\nif (!text && typeof r.text === 'string') text = r.text;\nif (!text && r.message && r.message.content) text = r.message.content;\ntext = String(text || '').trim();\nif (!text) throw new Error('No outro came back from the DJ brain');\ntext = text.replace(/\\[[^\\]]*\\]/g, ' ');\ntext = text.replace(/^[\\\"'\\u201c\\u2018]+|[\\\"'\\u2019\\u201d]+$/g, '');\ntext = text.replace(/[*_#>`]+/g, ' ');\ntext = text.replace(/\\s+/g, ' ').trim();\nfor (const bad of [/as an ai/i, /language model/i, /\\btimebucket\\b/i, /\\bfact sheet\\b/i]) {\n  if (bad.test(text)) throw new Error('Outro leaked something off-air: ' + text.slice(0, 80));\n}\nconst words = text.split(' ').length;\nif (words < 20) throw new Error('Outro came back too short to air: ' + text);\nreturn [{ json: { script: text, words, opening: text.split(' ').slice(0, 7).join(' ') } }];"
+      },
+      "id": "665dddf2-7202-4b8c-a3eb-176761819ce3"
+    },
+    {
+      "name": "Marcus voices the outro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        950,
+        1200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/rWyjfFeMZ6PxkHqD3wGC/with-timestamps?output_format=mp3_44100_128",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.script, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.55, similarity_boost: 0.75, style: 0.35, use_speaker_boost: true } }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oLKJAWs4Gt9CUmdU",
+          "name": "ElevenLabs API Key (Marcus Moon)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "1943294b-c66b-4ecf-ab6c-c03f76a8fd93"
+    },
+    {
+      "name": "Unpack the outro voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        1200
+      ],
+      "parameters": {
+        "jsCode": "// Decode the with-timestamps response: audio + exact speech boundaries.\nconst r = $input.first().json;\nif (!r || !r.audio_base64) throw new Error('No audio came back from ElevenLabs');\nconst buf = Buffer.from(r.audio_base64, 'base64');\nconst a = r.alignment || {};\nconst ch = a.characters || [];\nconst st = a.character_start_times_seconds || [];\nconst en = a.character_end_times_seconds || [];\nlet speechStart = 0, speechEnd = 0;\nfor (let i = 0; i < ch.length; i++) { if (String(ch[i]).trim()) { speechStart = st[i] || 0; break; } }\nfor (let i = ch.length - 1; i >= 0; i--) { if (String(ch[i]).trim()) { speechEnd = en[i] || 0; break; } }\nif (!speechEnd) speechEnd = en.length ? en[en.length - 1] : 28;\nreturn [{ json: { speechStart: Math.round(speechStart * 100) / 100, speechEnd: Math.round(speechEnd * 100) / 100 },\n  binary: { data: await this.helpers.prepareBinaryData(buf, 'outrovoice.mp3', 'audio/mpeg') } }];"
+      },
+      "id": "43fd8bcf-7f5d-42ad-8db0-eb7cc34e1499"
+    },
+    {
+      "name": "Save the outro voice",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        1200
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "/tmp/kazm-outrovo.mp3",
+        "dataPropertyName": "data"
+      },
+      "id": "377c9eee-6173-4e6c-95b5-ea6c5d32c21a"
+    },
+    {
+      "name": "Fetch the outro bed",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        1200
+      ],
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "download",
+        "path": "/Charles Helstein/Quite Storm Show/Main Moments In Love.mp3"
+      },
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "id": "a9774008-9138-4102-8f7e-3d3eb632d3c0"
+    },
+    {
+      "name": "Save the outro bed",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1550,
+        1200
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "/tmp/kazm-outrobed.mp3",
+        "dataPropertyName": "data"
+      },
+      "onError": "continueRegularOutput",
+      "id": "2d55f824-47d4-4ba3-9e4b-18af50648198"
+    },
+    {
+      "name": "Mix the outro",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        1200
+      ],
+      "parameters": {
+        "command": "=V=/tmp/kazm-outrovo.mp3; B=/tmp/kazm-outrobed.mp3; O=/tmp/kazm-outromix.mp3; SE=\"{{ $('Unpack the outro voice').first().json.speechEnd }}\"; FF=/home/node/.n8n/bin/ffmpeg; if [ -s \"$B\" ]; then E=$(awk \"BEGIN{print 3.0+$SE+0.3}\"); E2=$(awk \"BEGIN{print 3.0+$SE+1.5}\"); T=$(awk \"BEGIN{print 3.0+$SE+4.0}\"); FST=$(awk \"BEGIN{print 3.0+$SE+1.2}\"); $FF -y -i \"$V\" -ss 62 -i \"$B\" -filter_complex \"[0:a]adelay=3000|3000,aformat=sample_rates=44100:channel_layouts=stereo[v];[1:a]atrim=0:$T,aformat=sample_rates=44100:channel_layouts=stereo,volume='if(lt(t,2.4),0.50,if(lt(t,3.0),0.50-0.33*(t-2.4)/0.6,if(lt(t,$E),0.17,if(lt(t,$E2),0.17+0.28*(t-$E)/1.2,0.45))))':eval=frame[b];[b][v]amix=inputs=2:duration=first:normalize=0,afade=t=in:d=1.0,afade=t=out:st=$FST:d=2.8\" -codec:a libmp3lame -b:a 192k \"$O\" >/tmp/kazm-outromix.log 2>&1 && echo MIXED || { echo MIXFAIL; tail -3 /tmp/kazm-outromix.log; cp \"$V\" \"$O\"; }; else cp \"$V\" \"$O\"; echo DRY; fi; rm -f \"$B\""
+      },
+      "onError": "continueRegularOutput",
+      "id": "3fecd23c-418b-4578-882f-3b147731f325"
+    },
+    {
+      "name": "Load the outro mix",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1850,
+        1200
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "/tmp/kazm-outromix.mp3"
+      },
+      "onError": "continueRegularOutput",
+      "id": "d57b3bf7-e09f-4e9c-8ff2-a4e60e5bd7fd"
+    },
+    {
+      "name": "Choose outro audio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        1200
+      ],
+      "parameters": {
+        "jsCode": "// Use the bed-mixed outro when the mix produced one; otherwise the dry voice.\nlet out = null;\ntry {\n  const m = $('Load the outro mix').first();\n  if (m && m.binary && m.binary.data) out = { json: { mixed: true }, binary: m.binary };\n} catch (e) {}\nif (!out) out = { json: { mixed: false }, binary: $('Unpack the outro voice').first().binary };\nreturn [out];"
+      },
+      "id": "5899a908-9f79-4c23-a28c-09abcfce3191"
+    },
+    {
+      "name": "Quiet Storm Outro",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        2150,
+        1200
+      ],
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "upload",
+        "path": "/Charles Helstein/Quite Storm Show/Quiet Storm Show IOutro V1.mp3",
+        "binaryData": true
+      },
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "e61a4604-504b-448a-bdf8-88ab39224b8b"
+    },
+    {
+      "name": "Sign the logbook (outro)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2300,
+        1200
+      ],
+      "parameters": {
+        "jsCode": "const sd = $getWorkflowStaticData('global');\nsd.scripts = sd.scripts || [];\nconst c = $('Clean the outro').first().json;\nsd.scripts.push({ at: new Date().toISOString(), kind: 'outro', words: c.words, opening: c.opening, script: c.script });\nif (sd.scripts.length > 60) sd.scripts = sd.scripts.slice(-60);\nreturn [{ json: { saved: true, kind: 'outro', words: c.words } }];"
+      },
+      "id": "827f6986-da39-4c0d-afd9-2319c4eb18b2"
     }
   ],
   "connections": {
@@ -1374,6 +1669,160 @@
         [
           {
             "node": "Quiet Storm Intro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outro time (5:51a Tue–Sat)": {
+      "main": [
+        [
+          {
+            "node": "Weather for the outro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather for the outro": {
+      "main": [
+        [
+          {
+            "node": "Build the outro brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build the outro brief": {
+      "main": [
+        [
+          {
+            "node": "Claude writes the outro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude writes the outro": {
+      "main": [
+        [
+          {
+            "node": "Clean the outro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean the outro": {
+      "main": [
+        [
+          {
+            "node": "Marcus voices the outro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcus voices the outro": {
+      "main": [
+        [
+          {
+            "node": "Unpack the outro voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpack the outro voice": {
+      "main": [
+        [
+          {
+            "node": "Save the outro voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the outro voice": {
+      "main": [
+        [
+          {
+            "node": "Fetch the outro bed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch the outro bed": {
+      "main": [
+        [
+          {
+            "node": "Save the outro bed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the outro bed": {
+      "main": [
+        [
+          {
+            "node": "Mix the outro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mix the outro": {
+      "main": [
+        [
+          {
+            "node": "Load the outro mix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load the outro mix": {
+      "main": [
+        [
+          {
+            "node": "Choose outro audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose outro audio": {
+      "main": [
+        [
+          {
+            "node": "Quiet Storm Outro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quiet Storm Outro": {
+      "main": [
+        [
+          {
+            "node": "Sign the logbook (outro)",
             "type": "main",
             "index": 0
           }
