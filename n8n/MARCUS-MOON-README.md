@@ -114,18 +114,17 @@ a break. Marcus is not bed-mixed (his show has its own bed-music
 category in MegaSeg). Phase 2 (planned): ffmpeg-analyzed intro/outro
 talk-over markers on rotation songs.
 
-**Dynamic Rules Off/On window (no substitutions, ever).** On top of the
-rule-safe picker, each armed run writes a per-hour **`Rules Off` /
-`Rules On`** pair into MegaSeg's Main Events (same actions the station's
-3 O'Clock 3 Pack uses): `Rules Off` at `:25:08` — five seconds before the
-DJ VO insert — and `Rules On` at a **computed** time = insert + estimated
-tail of the song playing at :25:13 (from AzuraCast elapsed/duration,
-capped 0–6 min, 200s fallback) + the VO's real length (timestamps) + the
-exact durations of the lead-in and all three songs + 60s safety. MegaSeg
-picks up the fresh times because Main Events **self-reloads hourly** via
-a static `:23:30 Past the hour → Switch Events: Main Events` event. The
-engine strips and rewrites only the two `Rules Off/On` lines each run —
-don't hand-add other Rules events to Main Events, they'd be removed.
+**Rules Off/On window (no substitutions, ever).** On top of the
+rule-safe picker, two static recurring events in Main Events (same
+`Rules Off` / `Rules On` actions the station's 3 O'Clock 3 Pack uses)
+bracket every DJ VO block: **`:24 Past the hour → Rules Off`** (about a
+minute before the `:25:13` insert) and **`:40 Past the hour → Rules On`**.
+Same times every hour, no per-hour events needed. Note the `Past the
+hour` format fires **every hour, every day** — including overnight and
+weekends when no DJ block airs — so rules are off :24–:40 each hour
+across the board; MegaSeg's own picks in that window are unscreened.
+If the last block song is ever swapped at play time after :40, nudge
+the Rules On event later (e.g. `:50 Past the hour`).
 
 **Self-arming (`voReady`).** Song control only activates for a DJ once their
 break MP3 exists in **MegaSeg's own library** (the engine looks the file up

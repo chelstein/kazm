@@ -686,69 +686,6 @@
         "jsCode": "// Decode the with-timestamps response: audio + exact speech boundaries.\nconst r = $input.first().json;\nif (!r || !r.audio_base64) throw new Error('No audio came back from ElevenLabs');\nconst buf = Buffer.from(r.audio_base64, 'base64');\nconst a = r.alignment || {};\nconst ch = a.characters || [];\nconst st = a.character_start_times_seconds || [];\nconst en = a.character_end_times_seconds || [];\nlet speechStart = 0, speechEnd = 0;\nfor (let i = 0; i < ch.length; i++) { if (String(ch[i]).trim()) { speechStart = st[i] || 0; break; } }\nfor (let i = ch.length - 1; i >= 0; i--) { if (String(ch[i]).trim()) { speechEnd = en[i] || 0; break; } }\nif (!speechEnd) speechEnd = en.length ? en[en.length - 1] : 30;\nreturn [{ json: { speechStart: Math.round(speechStart * 100) / 100, speechEnd: Math.round(speechEnd * 100) / 100 },\n  binary: { data: await this.helpers.prepareBinaryData(buf, 'voice.mp3', 'audio/mpeg') } }];"
       },
       "id": "33691b6a-8061-41b9-b01b-a213428e4cbb"
-    },
-    {
-      "name": "Fetch main events",
-      "type": "n8n-nodes-base.dropbox",
-      "typeVersion": 1,
-      "position": [
-        3780,
-        220
-      ],
-      "parameters": {
-        "authentication": "oAuth2",
-        "operation": "download",
-        "path": "/Charles Helstein/MegaSegDropbox/MegaSeg copy/Events/Main Events"
-      },
-      "credentials": {
-        "dropboxOAuth2Api": {
-          "id": "52dunp2MWkL9Vc2m",
-          "name": "Dropbox Connect Ry"
-        }
-      },
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 5000,
-      "id": "6d11791b-40e1-4999-b2b7-b880ffeace76"
-    },
-    {
-      "name": "Write the rules window",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        3960,
-        220
-      ],
-      "parameters": {
-        "jsCode": "// Write this hour's Rules Off/On window into Main Events so MegaSeg\n// cannot substitute the songs the DJ just promised. The file self-reloads\n// via the ':23:30 Past the hour -> Switch Events: Main Events' event.\nconst buf = await this.helpers.getBinaryDataBuffer(0, 'data');\nlet txt = buf.toString('utf8');\n\n// block timing (seconds past the hour); insert event fires at :25:13\nconst INSERT = 25 * 60 + 13;\nconst pj = $('Pick the rotation songs').first().json;\nconst rowDur = (row) => { const c = String(row || '').split('\\t'); return parseFloat(c[6]) || 240; };\nlet blockDur = 0;\nif (pj.leadRow) blockDur += rowDur(pj.leadRow);\nfor (const r of (pj.rows || [])) blockDur += rowDur(r);\nlet voDur = 34;\ntry { voDur = ($('Unpack the voice').first().json.speechEnd || 30) + 4.3; } catch (e) {}\n// estimate of the song still playing when the block inserts, from AzuraCast\nlet tail = 200;\ntry {\n  const np = $('Ask the airwaves').first().json.now_playing;\n  const r = (np.duration || 0) - (np.elapsed || 0);\n  const phxNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\n  const delta = INSERT - (phxNow.getMinutes() * 60 + phxNow.getSeconds());\n  if (np.duration && r - delta > 0) tail = r - delta;\n} catch (e) {}\ntail = Math.max(0, Math.min(tail, 360));\nconst onAt = Math.min(INSERT + tail + voDur + blockDur + 60, 58 * 60);\n\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst H = phx.getHours();\nconst h12 = ((H + 11) % 12) + 1;\nconst ap = H >= 12 ? 'PM' : 'AM';\nconst pad = (n) => String(n).padStart(2, '0');\nconst NNB = ' ';\nconst DAYS = 'Mon/Tue/Wed/Thu/Fri';\nconst stamp = (secs) => h12 + ':' + pad(Math.floor(secs / 60)) + ':' + pad(Math.floor(secs % 60)) + NNB + ap + ', ' + DAYS;\nconst offLine = stamp(25 * 60 + 8) + '\\tRules Off\\t\\t\\t\\t\\t';\nconst onLine = stamp(onAt) + '\\tRules On\\t\\t\\t\\t\\t';\n\n// replace any previously managed rules lines (ours are the only Rules lines here)\nconst kept = txt.split('\\n').filter((l) => !/\\tRules (Off|On)\\t/.test(l));\nwhile (kept.length && kept[kept.length - 1] === '') kept.pop();\nconst out = kept.join('\\n') + '\\n' + offLine + '\\n' + onLine + '\\n';\nreturn [{ json: { eventsContent: out, offLine, onLine, blockDur: Math.round(blockDur), voDur: Math.round(voDur), tail: Math.round(tail), rulesOnAt: Math.floor(onAt / 60) + ':' + pad(Math.floor(onAt % 60)) } }];"
-      },
-      "id": "2c75b8eb-5ffa-4b4e-b1cf-7557065ccdd8"
-    },
-    {
-      "name": "Update main events",
-      "type": "n8n-nodes-base.dropbox",
-      "typeVersion": 1,
-      "position": [
-        4140,
-        220
-      ],
-      "parameters": {
-        "authentication": "oAuth2",
-        "operation": "upload",
-        "path": "/Charles Helstein/MegaSegDropbox/MegaSeg copy/Events/Main Events",
-        "binaryData": false,
-        "fileContent": "={{ $json.eventsContent }}"
-      },
-      "credentials": {
-        "dropboxOAuth2Api": {
-          "id": "52dunp2MWkL9Vc2m",
-          "name": "Dropbox Connect Ry"
-        }
-      },
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 5000,
-      "id": "9c4ba97f-7b93-41c3-9fa9-bec888a4bcf9"
     }
   ],
   "connections": {
@@ -1005,7 +942,7 @@
       "main": [
         [
           {
-            "node": "Fetch main events",
+            "node": "Sign the logbook",
             "type": "main",
             "index": 0
           }
@@ -1105,39 +1042,6 @@
         [
           {
             "node": "Save the voice",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch main events": {
-      "main": [
-        [
-          {
-            "node": "Write the rules window",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Write the rules window": {
-      "main": [
-        [
-          {
-            "node": "Update main events",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update main events": {
-      "main": [
-        [
-          {
-            "node": "Sign the logbook",
             "type": "main",
             "index": 0
           }
