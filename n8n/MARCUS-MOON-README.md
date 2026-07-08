@@ -33,8 +33,31 @@ and output file come from a per-DJ profile.
   **per DJ** in `staticData.djs`, so each personality varies independently.
 - Marcus's dedicated workflow continues to run the Quiet Storm (it also does
   MegaSeg playlist control, which is per-show wiring); the engine covers
-  everyone else. When a roster DJ gets a real show slot, add schedule
-  triggers (and optionally clone the playlist-control pattern for that show).
+  everyone else.
+
+**Dayparts & rotation song control.** The engine runs the daytime schedule
+itself: a cron (`16,36 6-23 * * *`, America/Phoenix) fires **twice an hour**
+and `Select the DJ` maps the hour to the on-duty host — **Burt 6a–noon,
+Canyon Jack noon–6p, Kaley 6p–midnight** (hours 6–11 / 12–17 / 18–23). Each
+run also downloads the MegaSeg Database and picks **4 songs from the daytime
+rotation** — weighted 60% `* A. HEAVY ROTATION` / 30% `***** B. MEDIUM` /
+10% `********* C. LOW` (pools ~151/151/328), skipping recently-aired titles
+and a shared 60-song no-repeat memory — one **lead-in** and three **after**,
+then rewrites the shared MegaSeg playlist `Playlists/Daytime DJ VO`:
+lead-in row → the on-duty DJ's VO row → the three songs. The DJ can
+back-announce the lead-in, tease the next songs, or bracket both — all
+guaranteed, same as Marcus.
+
+**Self-arming (`voReady`).** Song control only activates for a DJ once their
+break MP3 exists in **MegaSeg's own library** (the engine looks the file up
+in the database by its Mac location, e.g. `…:DJ Breaks:Burt Break.mp3`, and
+needs the record to build the VO playlist row). Until then breaks still
+generate and upload, but no playlist is written and no songs are promised —
+so scripts are never inaccurate during rollout. **One-time setup in MegaSeg:**
+add the three files in `/Charles Helstein/DJ Breaks/` to the MegaSeg library,
+then create Events inserting playlist **"Daytime DJ VO"** at `:20:13` and
+`:40:13` each hour, 6:00 AM–11:59 PM (the n8n runs at `:16`/`:36` stay ~4
+minutes ahead, like the Quiet Storm).
 
 ## Two files in this folder
 
