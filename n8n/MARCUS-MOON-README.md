@@ -114,6 +114,19 @@ a break. Marcus is not bed-mixed (his show has its own bed-music
 category in MegaSeg). Phase 2 (planned): ffmpeg-analyzed intro/outro
 talk-over markers on rotation songs.
 
+**Dynamic Rules Off/On window (no substitutions, ever).** On top of the
+rule-safe picker, each armed run writes a per-hour **`Rules Off` /
+`Rules On`** pair into MegaSeg's Main Events (same actions the station's
+3 O'Clock 3 Pack uses): `Rules Off` at `:25:08` — five seconds before the
+DJ VO insert — and `Rules On` at a **computed** time = insert + estimated
+tail of the song playing at :25:13 (from AzuraCast elapsed/duration,
+capped 0–6 min, 200s fallback) + the VO's real length (timestamps) + the
+exact durations of the lead-in and all three songs + 60s safety. MegaSeg
+picks up the fresh times because Main Events **self-reloads hourly** via
+a static `:23:30 Past the hour → Switch Events: Main Events` event. The
+engine strips and rewrites only the two `Rules Off/On` lines each run —
+don't hand-add other Rules events to Main Events, they'd be removed.
+
 **Self-arming (`voReady`).** Song control only activates for a DJ once their
 break MP3 exists in **MegaSeg's own library** (the engine looks the file up
 in the database by its Mac location, e.g. `…:DJ Breaks:Burt Break.mp3`, and
