@@ -351,7 +351,18 @@ Quiet Storm events set at 11:59:50 PM Mon–Fri, back at 5:56 AM):
 
 The intro cron runs Mon–Fri **nights** (`56 23 * * 1-5`) and the break cron
 runs the **following mornings**, Tue–Sat (`21 1-4 * * 2-6`), since a weekday
-midnight show straddles the calendar day. The Quiet Storm events set also
+midnight show straddles the calendar day.
+
+**Produced show open/close (one-off, 2026-07-07):** a fixed ~30s intro and
+outro for the show were produced with Marcus's ElevenLabs voice mixed over
+the "Moments in Love" bed (bed opens alone ~3s, dips under the voice,
+swells back after the last word, rides out) and uploaded to
+`Quite Storm Show/Quiet Storm Show Intro V1.mp3` and
+`…/Quiet Storm Show IOutro V1.mp3`. Intro thanks the listeners and sets up
+the show; outro thanks them and gives the return time (weeknights,
+midnight to six). These are static files — the nightly AI-written intro
+still generates to `Quiet Storm Show Intro V2.mp3`; point MegaSeg's intro
+playlist at whichever should air. The Quiet Storm events set also
 carries the same `:24 Past the hour → Rules Off` / `:45 Past the hour →
 Rules On` pair as Main Events, so Marcus's promised songs are
 substitution-proof during his show too (the 5:55a outro and Station IDs
