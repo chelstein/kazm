@@ -93,8 +93,9 @@ topics — no promises the playout can't keep.
 **Bed music (no more dry reads).** Daypart breaks are mixed over an
 instrumental bed before delivery: `Voice the break` → save to disk →
 pick a **random bed** from Dropbox **`/Charles Helstein/DJ Beds/`** (drop
-audio files there to change the sound — currently one placeholder synth
-pad, `Test Bed (placeholder).mp3`) → `Mix the bed` runs **ffmpeg**
+audio files there to change the sound — currently `70s Vintage Rock
+Main.mp3`; each break also drops in at a random spot in the bed so
+repeats never sound identical) → `Mix the bed` runs **ffmpeg**
 (static build self-installed at `/home/node/.n8n/bin/`, survives
 restarts) — bed fades in 1.5s before the voice, **sidechain-ducks**
 under speech (threshold .02, ratio 12, release 500ms), swells back
