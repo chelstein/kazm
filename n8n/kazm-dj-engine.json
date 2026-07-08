@@ -1,0 +1,615 @@
+{
+  "name": "KAZM DJ Engine — multi-DJ breaks",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "kazm-dj-now",
+        "options": {}
+      },
+      "id": "dj-webhook-01",
+      "name": "Make a break (remote)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        400
+      ],
+      "webhookId": "kazm-dj-now"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Anyone can find a URL; only the key holder gets to spend API credits.\nconst q = $input.first().json.query || {};\nif (q.k !== 'moon-2026') return [];\nconst dj = String(q.dj || '').toLowerCase().trim();\nif (!dj) return [];\nreturn [{ json: { dj } }];\n"
+      },
+      "id": "dj-checkkey-01",
+      "name": "Check the key",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "download",
+        "path": "/Charles Helstein/DJ Roster/djs.json"
+      },
+      "id": "dj-roster-01",
+      "name": "Fetch the roster",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        600,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Load the requested DJ's profile from the Dropbox roster.\nconst buf = await this.helpers.getBinaryDataBuffer(0, 'data');\nconst roster = JSON.parse(buf.toString('utf8'));\nconst djId = $('Check the key').first().json.dj;\nconst profile = (roster.djs || {})[djId];\nif (!profile) throw new Error('No DJ named \"' + djId + '\" in the roster');\nif (profile.active === false) throw new Error('DJ \"' + djId + '\" is marked inactive in the roster');\nreturn [{ json: { djId, profile } }];\n"
+      },
+      "id": "dj-select-01",
+      "name": "Select the DJ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://forecast.weather.gov/MapClick.php?lat=34.8697&lon=-111.7610&FcstType=json",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "dj-weather-01",
+      "name": "Weather for DJ2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        400
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "url": "https://streaming.mellowmountainradio.com/api/nowplaying/mellowmountainradio",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "dj-azura-01",
+      "name": "Ask the airwaves",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        400
+      ],
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/chelstein/mellowmountainradio/main/library-events.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ts",
+              "value": "={{ $now.toMillis() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "dj-lib-01",
+      "name": "Fetch library events",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        400
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/chelstein/mellowmountainradio/main/concerts.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ts",
+              "value": "={{ $now.toMillis() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "dj-con-01",
+      "name": "Fetch concerts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        400
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/chelstein/mellowmountainradio/main/festivals.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ts",
+              "value": "={{ $now.toMillis() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "dj-fes-01",
+      "name": "Fetch festivals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        400
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/chelstein/mellowmountainradio/main/showtimes.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ts",
+              "value": "={{ $now.toMillis() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "dj-show-01",
+      "name": "Fetch showtimes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        400
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "// The DJ Engine fact sheet: the same verified-facts machinery as Marcus's\n// workflow, but the persona, length, voice and delivery come from the DJ\n// Roster profile — one engine, many DJs.\nconst sd = $getWorkflowStaticData('global');\nconst sel = $('Select the DJ').first().json;\nconst profile = sel.profile;\nconst djId = sel.djId;\nsd.djs = sd.djs || {};\nconst mem = sd.djs[djId] = sd.djs[djId] || {};\n\n// --- time ---\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst today = phx.getFullYear() + '-' + pad(phx.getMonth() + 1) + '-' + pad(phx.getDate());\nconst daysN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];\nconst weekday = daysN[phx.getDay()];\nconst hour = phx.getHours();\nconst clock = (((hour + 11) % 12) + 1) + ':' + pad(phx.getMinutes()) + ' ' + (hour >= 12 ? 'PM' : 'AM');\nconst bucket = hour < 5 ? 'overnight' : hour < 7 ? 'early morning' : hour < 9 ? 'morning drive' : hour < 11 ? 'late morning' : hour < 14 ? 'midday' : hour < 17 ? 'afternoon' : hour < 19 ? 'late afternoon' : hour < 22 ? 'evening' : 'late night';\n\n// --- weather: NWS current observation, real numbers or nothing ---\nlet wx = null;\ntry {\n  const o = $('Weather for DJ2').first().json.currentobservation;\n  if (o && o.Temp && o.Weather) wx = { temp: parseInt(o.Temp, 10), cond: String(o.Weather) };\n} catch (e) {}\nlet vibe = null;\nif (wx) {\n  const c = wx.cond.toLowerCase();\n  vibe = c.includes('rain') ? 'wet and moody' : c.includes('snow') ? 'cold and wintry'\n    : wx.temp <= 40 ? 'chilly' : wx.temp <= 55 ? 'cool' : wx.temp <= 70 ? 'comfortable' : wx.temp <= 85 ? 'warm' : 'hot';\n}\n\n// --- song hygiene (same rules that keep ads and sweepers off Marcus's sheet) ---\nconst aliases = { 'Daryl Hall & John Oates': 'Hall and Oates', 'Daryl Hall and John Oates': 'Hall and Oates', 'Earth, Wind & Fire': 'Earth Wind and Fire', 'Crosby, Stills, Nash & Young': 'CSNY' };\nconst cleanTitle = (t) => String(t || '').split(/\\s+-\\s+/)[0].replace(/\\([^)]*\\)/g, '').replace(/\\s+/g, ' ').trim();\nconst isBumper = (title, artist, duration) => {\n  const t = String(title || '').toLowerCase();\n  const a = String(artist || '').trim().toLowerCase().replace(/\\s+/g, ' ');\n  const dur = Number(duration) || 0;\n  if (dur > 0 && dur < 90) return true;\n  if (!a) return true;\n  if (a.replace(/\\s+/g, '') === 'live365') return true;\n  if (['mellow mountain radio', 'station id', 'app announcement'].includes(a)) return true;\n  return /adbreak|ad break|sweeper|imaging|bumper|station id|\\bliner\\b|\\bpromo\\b|\\bident\\b/.test(t);\n};\nconst recent = [];\ntry {\n  const np = $('Ask the airwaves').first().json || {};\n  for (const r of (np.song_history || [])) {\n    const s = r && r.song;\n    if (!s || !s.title) continue;\n    if (isBumper(s.title, s.artist, r.duration)) continue;\n    const title = cleanTitle(s.title);\n    if (!title || title.toLowerCase() === 'mellow mountain radio') continue;\n    recent.push({ title: title.slice(0, 120), artist: aliases[s.artist] || String(s.artist || '').slice(0, 120) });\n    if (recent.length >= 5) break;\n  }\n} catch (e) {}\n\n// --- events / shows / movies from the mellowmountainradio.com site feeds ---\nconst dstr = (dt) => dt.getFullYear() + '-' + pad(dt.getMonth() + 1) + '-' + pad(dt.getDate());\nconst localHorizon = new Date(phx); localHorizon.setDate(localHorizon.getDate() + 21);\nconst showHorizon = new Date(phx); showHorizon.setDate(showHorizon.getDate() + 60);\nconst movieHorizon = new Date(phx); movieHorizon.setDate(movieHorizon.getDate() + 14);\nconst localH = dstr(localHorizon), showH = dstr(showHorizon), movieH = dstr(movieHorizon);\nconst VERDE = new Set(['sedona', 'village of oak creek', 'cottonwood', 'clarkdale', 'jerome', 'camp verde', 'flagstaff']);\nconst feed = (nodeName) => {\n  try {\n    const j = $(nodeName).first().json || {};\n    return typeof j.data === 'string' ? JSON.parse(j.data) : j;\n  } catch (e) { return {}; }\n};\nconst pickFrom = (arr, n) => arr.length ? (arr[0].rank === 0 ? arr[0] : arr[Math.floor(Math.random() * Math.min(n, arr.length))]) : null;\n\nconst localPool = [];\ntry {\n  const lib = feed('Fetch library events');\n  for (const e of (lib.events || [])) {\n    if (!e || !e.date || e.date < today || e.date > localH) continue;\n    localPool.push({ date: e.date, name: e.title, place: 'the Community Library in Sedona', note: e.time ? ('starts ' + e.time) : '', rank: 1 });\n  }\n} catch (e) {}\nlocalPool.sort((a, b) => (a.rank - b.rank) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));\nconst evLocal = pickFrom(localPool, 4);\n\nconst showPool = [];\ntry {\n  const con = feed('Fetch concerts');\n  for (const s of (con.concerts || [])) {\n    if (!s || s.state !== 'AZ' || !s.date || s.date < today || s.date > showH) continue;\n    const near = VERDE.has(String(s.city || '').toLowerCase());\n    showPool.push({ date: s.date, name: (aliases[s.artist] || s.artist) + ' at ' + s.venue, place: s.city + ', Arizona', rank: near ? 0 : 1 });\n  }\n} catch (e) {}\ntry {\n  const fes = feed('Fetch festivals');\n  for (const f of (fes.festivals || [])) {\n    const fd = f && f.start;\n    if (!f || f.state !== 'AZ' || !fd || fd < today || fd > showH) continue;\n    const near = VERDE.has(String(f.city || '').toLowerCase());\n    showPool.push({ date: fd, name: f.name, place: f.city + ', Arizona', rank: near ? 0 : 1 });\n  }\n} catch (e) {}\nshowPool.sort((a, b) => (a.rank - b.rank) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));\nconst evShow = pickFrom(showPool, 5);\n\nconst moviePool = [];\ntry {\n  const st = feed('Fetch showtimes');\n  for (const m of (st.showings || [])) {\n    if (!m || !m.date || m.date < today || m.date > movieH) continue;\n    const near = VERDE.has(String(m.city || '').toLowerCase());\n    moviePool.push({ date: m.date, time: m.time || '', title: m.title, venue: m.venue, place: m.city, rank: near ? 0 : 1 });\n  }\n} catch (e) {}\nmoviePool.sort((a, b) => (a.rank - b.rank) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));\nconst evMovie = moviePool.length ? moviePool[Math.floor(Math.random() * Math.min(5, moviePool.length))] : null;\n\n// --- the director: one fresh lead angle per break, per-DJ memory ---\nconst weatherMode = ['exact', 'descriptive', 'mixed'][Math.floor(Math.random() * 3)];\nconst mSelfID = Math.random() < (profile.selfIdRate != null ? profile.selfIdRate : 0.4);\nconst nightish = (bucket === 'overnight' || bucket === 'late night' || bucket === 'early morning');\nconst drive = (bucket === 'morning drive' || bucket === 'afternoon' || bucket === 'late afternoon');\n\nconst siteSpotlights = [\n  { name: 'Chakras & Tarot', hook: 'the full seventy-eight-card tarot with a card of the day drawn over Sedona, plus the seven chakras and their healing frequencies' },\n  { name: 'Sound Healing', hook: 'the KAZM Harmonic Stack — binaural tone sessions and a coherent-breathing pacer, all synthesized live right in your browser' },\n  { name: 'Astrology', hook: 'daily readings drawn from the real sky over Sedona, live planet positions, and your own Sun, Moon and Rising birth chart' },\n  { name: 'Cosmic Conditions', hook: \"Sedona's vortex energy and tonight's cosmic weather — the moon phase, the geomagnetic field, and the Earth's Schumann resonance\" },\n  { name: 'the Song Time Machine', hook: 'every song we play logged the moment it airs — look up what was on at any minute, or browse the weekly spin charts' },\n  { name: \"the Listeners' Lounge\", hook: 'every broadcast hour of KAZM kept for two weeks and ready to replay, so you never miss a moment' },\n  { name: 'the Jeep Trails guide', hook: 'every legendary Sedona trail — Broken Arrow, Soldier Pass, Schnebly Hill — with live run-verdicts and a last-safe-start clock' },\n  { name: 'Events and Adventures', hook: 'live trail conditions, the Oak Creek flow, Slide Rock, the ski report, even geocaching spots to get you outside' },\n  { name: 'Seen around Sedona', hook: 'a living field guide to the Verde Valley — live wildlife sightings and what is blooming right now' },\n  { name: 'Contests', hook: 'Ticket Tuesday, Food Fridays, and more giveaways' },\n  { name: 'the Photography guide', hook: \"a photographer's guide to shooting the red rocks\" },\n  { name: 'the Music page', hook: \"the artists in rotation and the three o'clock three pack\" },\n  { name: 'Podcasts', hook: 'station shows and podcasts on demand, any time you want them' },\n];\n\nconst angleDefs = {\n  weather:    { avail: !!wx,               w: bucket === 'early morning' ? 3 : drive ? 3 : 2 },\n  song:       { avail: recent.length > 0,  w: 2 },\n  local:      { avail: !!evLocal,          w: 2 },\n  concert:    { avail: !!evShow,           w: 2 },\n  movie:      { avail: !!evMovie,          w: 2 },\n  website:    { avail: true,               w: nightish ? 3 : 2 },\n  reflection: { avail: true,               w: nightish ? 3 : 1 },\n};\nmem.recentAngles = mem.recentAngles || [];\nconst buildBag = (exclude) => {\n  const bag = [];\n  for (const k of Object.keys(angleDefs)) {\n    if (!angleDefs[k].avail || exclude.has(k)) continue;\n    for (let i = 0; i < angleDefs[k].w; i++) bag.push(k);\n  }\n  return bag;\n};\nlet bag = buildBag(new Set(mem.recentAngles));\nif (!bag.length) bag = buildBag(new Set());\nconst primary = bag.length ? bag[Math.floor(Math.random() * bag.length)] : 'reflection';\nmem.recentAngles.push(primary);\nif (mem.recentAngles.length > 3) mem.recentAngles = mem.recentAngles.slice(-3);\nlet secondary = null;\nif (Math.random() < 0.30) {\n  const secBag = buildBag(new Set([primary, 'song', 'reflection']));\n  if (secBag.length) secondary = secBag[Math.floor(Math.random() * secBag.length)];\n}\nconst angleSet = new Set([primary, secondary].filter(Boolean));\n\nconst mWeather = angleSet.has('weather');\nconst mSong = angleSet.has('song');\nconst songData = (mSong && recent.length) ? recent[Math.floor(Math.random() * Math.min(3, recent.length))] : null;\nconst mLocal = angleSet.has('local');\nconst mShow = angleSet.has('concert');\nconst mMovie = angleSet.has('movie');\nconst mSite = angleSet.has('website');\nconst mReflect = primary === 'reflection' && !secondary;\n\nmem.spotlights = mem.spotlights || [];\nlet spotlight = null;\nif (mSite) {\n  const freshS = siteSpotlights.filter((s) => !mem.spotlights.includes(s.name));\n  const poolS = freshS.length ? freshS : siteSpotlights;\n  spotlight = poolS[Math.floor(Math.random() * poolS.length)];\n  mem.spotlights.push(spotlight.name);\n  if (mem.spotlights.length > 6) mem.spotlights = mem.spotlights.slice(-6);\n}\n\nconst openings = (mem.scripts || []).slice(-4).map((s) => s.opening).filter(Boolean);\n\n// --- compose the system prompt: roster persona + the engine's shared rules ---\nconst wr = profile.wordRange || [70, 90];\nconst secs = Math.round(((wr[0] + wr[1]) / 2) / 2.7);\nconst tagRule = profile.audioTags\n  ? '- This voice supports ElevenLabs v3 audio tags: you may use one to three tags like [laughing], [excited], [cheerful], [sighs] where they genuinely fit the delivery. Tags are performance directions in square brackets, never spoken words. Do not overuse them, and use no other brackets.'\n  : '- Output spoken words only. No stage directions, brackets, audio tags, quotes around the whole thing, emojis, markdown, or explanations.';\nconst stationRule = profile.stationIdLine\n  ? '- Include this exact station ID line once, naturally placed: \"' + profile.stationIdLine + '\"'\n  : '- End by mentioning Mellow Mountain Radio, once, naturally.';\n\nconst system = profile.persona\n  + '\\n\\nTIME-BASED DELIVERY\\n\\nAdjust tone, pacing, and energy to the provided timeBucket: overnight and late night are low-key, calm, quiet company at a very relaxed pace; early morning is gentle and welcoming with short sentences; morning drive is upbeat, confident, fully awake with light humor; late morning and midday are bright, smooth, friendly; afternoon and late afternoon are easygoing cruising energy; evening is warm and companionable, readier to crack a joke.\\nStrict: never mention the time or time ranges on air — let tone imply the time. Never sound rushed overnight, never sound sleepy during drive times.'\n  + '\\n\\nWEATHER EXPRESSION\\n\\nWhen weather is listed with a mode, use it. EXACT: precise temperature and conditions. DESCRIPTIVE: no numbers, just how it feels. MIXED: descriptive phrasing with a light numeric touch (\"sitting in the mid-40s\"). Match weather tone to the hour; overnight and early morning favor descriptive or mixed.'\n  + '\\n\\nSONG & ARTIST\\n\\nWhen mentioned, be casual — never a formal announcement. Use spoken artist names as given. Keep titles short. Earlier songs are past tense, about how they FELT. You are not told the next song — never name a coming-up track; at most say more music is on the way. No artist trivia, biography, or chart history — never facts about the music. If uncertain, be safely vague.'\n  + '\\n\\nHARD RULES — break any of these and the break does not air:\\n'\n  + tagRule + '\\n'\n  + '- Build the break around the ANGLE stated below, using ONLY the facts listed. Never invent weather numbers, songs, artists, events, times, places, or website features. If a subject is not listed, it does not exist for this break — leave it out entirely.\\n'\n  + '- Length: ' + wr[0] + ' to ' + wr[1] + ' words (about ' + secs + ' seconds read aloud). Short sentences, written for the ear. Say numbers and dates the way people speak them.\\n'\n  + '- Vary your openings: never start like any recently used opening listed, and avoid stock DJ lines (\"you are listening to\" is allowed only inside the required station ID line, if one is given).\\n'\n  + stationRule + '\\n'\n  + '- Never mention being an AI, a script, or anything behind the curtain. You are this DJ. Full stop.';\n\nconst evWhen = (dt) => dt === today ? 'today' : (dt === dstr(new Date(phx.getFullYear(), phx.getMonth(), phx.getDate() + 1)) ? 'tomorrow' : daysN[new Date(dt + 'T12:00:00').getDay()] + ' (' + dt + ')');\n\nconst angleText = {\n  weather: 'Lead with the Sedona weather and sky right now.',\n  song: 'Lead by reflecting, in past tense, on how a song we played a little earlier FELT.',\n  local: 'Lead with the local Sedona happening listed below.',\n  concert: 'Lead with the upcoming Arizona show listed below — something to look forward to.',\n  movie: 'Lead with the film screening listed below.',\n  website: 'Lead with the website feature listed below — make the listener want to open mellowmountainradio.com.',\n  reflection: 'No outside facts this time — just you. A short, warm piece of company: a thought, a feeling, the hour, the valley. Do NOT mention weather, songs, events, shows, movies, or the website — none of that exists for this break.',\n};\n\nconst lines = [];\nlines.push('Current local time: ' + clock + ' on ' + weekday + '. timeBucket: ' + bucket + '.');\nlines.push('');\nlines.push('ANGLE FOR THIS BREAK: ' + (angleText[primary] || primary));\nif (secondary) lines.push('SECONDARY (one light touch only, keep it under the lead): ' + (angleText[secondary] || secondary));\nlines.push('');\nlines.push('FACTS YOU MAY USE (only these exist — invent nothing else):');\nlet any = false;\nif (mWeather) { lines.push('- Weather in Sedona right now: ' + wx.cond + ', ' + wx.temp + ' degrees (feels ' + vibe + '). Weather mode: ' + weatherMode + '.'); any = true; }\nif (mSong && songData) { lines.push('- Played a little earlier (past tense, how it FELT): \"' + songData.title + '\" by ' + songData.artist + '.'); any = true; }\nif (mLocal && evLocal) { lines.push('- Local Sedona happening: ' + evLocal.name + (evLocal.place ? ' at ' + evLocal.place : '') + ', ' + evWhen(evLocal.date) + (evLocal.note ? ' — ' + evLocal.note : '') + '.'); any = true; }\nif (mShow && evShow) { lines.push('- Upcoming Arizona show: ' + evShow.name + ', ' + evShow.place + ', ' + evWhen(evShow.date) + '.'); any = true; }\nif (mMovie && evMovie) { lines.push('- On a Sedona screen: \"' + evMovie.title + '\" at ' + evMovie.venue + (evMovie.place ? ', ' + evMovie.place : '') + ', ' + evWhen(evMovie.date) + (evMovie.time ? ' at ' + evMovie.time : '') + '. Full showtimes live at mellowmountainradio.com.'); any = true; }\nif (mSite && spotlight) { lines.push('- Website feature: mellowmountainradio.com has ' + spotlight.name + ' — ' + spotlight.hook + '. Invite the listener to explore it.'); any = true; }\nif (!any) lines.push('- (none — this is a mood break; state no facts, invent nothing.)');\nlines.push('');\nlines.push('SELF-ID: ' + (mSelfID ? 'YES — say your on-air name this break: work in \"' + (profile.selfIdName || profile.name) + '\" naturally, usually in the sign-off.' : 'NO — no need to say your own name this break.'));\nlines.push('');\nlines.push('Recently used openings (do NOT start like any of these): ' + (openings.length ? openings.join(' | ') : 'none yet') + '.');\nlines.push('');\nlines.push('TASK: Write ONE fresh DJ break built on the ANGLE above.');\n\nreturn [{ json: { system, user: lines.join('\\n'), meta: { dj: djId, bucket, clock, weatherMode, primary, secondary, flags: { mWeather, mSong, mLocal, mShow, mMovie, mSite, mReflect, mSelfID } } } }];\n"
+      },
+      "id": "dj-factsheet-01",
+      "name": "Build the fact sheet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 4096, thinking: { type: 'adaptive' }, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "dj-claude-01",
+      "name": "Claude writes the break",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ungqciecIEG6Gj6Y",
+          "name": "Anthropic API Key (Marcus Moon)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Last line of defense before the voice booth — profile-aware.\nconst profile = $('Select the DJ').first().json.profile;\nconst r = $input.first().json || {};\nlet text = '';\ntry {\n  const blocks = Array.isArray(r.content) ? r.content : [];\n  const tb = blocks.find((b) => b && b.type === 'text');\n  if (tb) text = tb.text;\n} catch (e) {}\nif (!text && typeof r.text === 'string') text = r.text;\ntext = String(text || '').trim();\nif (!text) throw new Error('No script came back from the DJ brain');\nif (!profile.audioTags) text = text.replace(/\\[[^\\]]*\\]/g, ' ');\ntext = text.replace(/^[\"'“‘]+|[\"'’”]+$/g, '');\ntext = text.replace(/[*_#>`]+/g, ' ');\ntext = text.replace(/\\s+/g, ' ').trim();\nfor (const bad of [/as an ai/i, /language model/i, /\\bfact sheet\\b/i, /\\bmention flag/i, /angle for this break/i, /\\bself-id\\b/i, /\\btimebucket\\b/i]) {\n  if (bad.test(text)) throw new Error('Script leaked something off-air: ' + text.slice(0, 80));\n}\nconst spoken = text.replace(/\\[[^\\]]*\\]/g, ' ').replace(/\\s+/g, ' ').trim();\nconst words = spoken.split(' ').length;\nconst minWords = Math.max(15, Math.round(((profile.wordRange || [70, 90])[0]) * 0.6));\nif (words < minWords) throw new Error('Script came back too short to air: ' + text);\nreturn [{ json: { script: text, words, opening: spoken.split(' ').slice(0, 7).join(' ') } }];\n"
+      },
+      "id": "dj-clean-01",
+      "name": "Clean the copy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.elevenlabs.io/v1/text-to-speech/{{ $('Select the DJ').first().json.profile.voiceId }}?output_format=mp3_44100_128",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "audio/mpeg"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({ text: $json.script, model_id: $('Select the DJ').first().json.profile.ttsModel }, $('Select the DJ').first().json.profile.voiceSettings ? { voice_settings: $('Select the DJ').first().json.profile.voiceSettings } : {})) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "dj-voice-01",
+      "name": "Voice the break",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2800,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "oLKJAWs4Gt9CUmdU",
+          "name": "ElevenLabs API Key (Marcus Moon)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "path": "={{ $('Select the DJ').first().json.profile.dropboxPath }}",
+        "binaryData": true
+      },
+      "id": "dj-deliver-01",
+      "name": "Deliver the break",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        3000,
+        400
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Per-DJ logbook in staticData.\nconst sd = $getWorkflowStaticData('global');\nconst sel = $('Select the DJ').first().json;\nsd.djs = sd.djs || {};\nconst mem = sd.djs[sel.djId] = sd.djs[sel.djId] || {};\nmem.scripts = mem.scripts || [];\nconst c = $('Clean the copy').first().json;\nmem.scripts.push({ at: new Date().toISOString(), words: c.words, opening: c.opening, script: c.script });\nif (mem.scripts.length > 40) mem.scripts = mem.scripts.slice(-40);\nreturn [{ json: { saved: true, dj: sel.djId, words: c.words } }];\n"
+      },
+      "id": "dj-logbook-01",
+      "name": "Sign the logbook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "path": "kazm-dj-log",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "dj-logwh-01",
+      "name": "Peek at the logbook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        700
+      ],
+      "webhookId": "kazm-dj-log"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read a DJ's last ten scripts: .../webhook/kazm-dj-log?k=moon-2026&dj=burt\nconst q = $input.first().json.query || {};\nconst sd = $getWorkflowStaticData('global');\nif (q.k !== 'moon-2026') return [{ json: { ok: false, why: 'bad key' } }];\nconst dj = String(q.dj || '').toLowerCase().trim();\nconst djs = sd.djs || {};\nif (!dj) return [{ json: { ok: true, djs: Object.keys(djs) } }];\nconst mem = djs[dj] || {};\nreturn [{ json: { ok: true, dj, scripts: (mem.scripts || []).slice(-10).reverse() } }];\n"
+      },
+      "id": "dj-readlog-01",
+      "name": "Read the logbook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "dj-respond-01",
+      "name": "Respond with the log",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        600,
+        700
+      ]
+    }
+  ],
+  "connections": {
+    "Make a break (remote)": {
+      "main": [
+        [
+          {
+            "node": "Check the key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check the key": {
+      "main": [
+        [
+          {
+            "node": "Fetch the roster",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch the roster": {
+      "main": [
+        [
+          {
+            "node": "Select the DJ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select the DJ": {
+      "main": [
+        [
+          {
+            "node": "Weather for DJ2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather for DJ2": {
+      "main": [
+        [
+          {
+            "node": "Ask the airwaves",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask the airwaves": {
+      "main": [
+        [
+          {
+            "node": "Fetch library events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch library events": {
+      "main": [
+        [
+          {
+            "node": "Fetch concerts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch concerts": {
+      "main": [
+        [
+          {
+            "node": "Fetch festivals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch festivals": {
+      "main": [
+        [
+          {
+            "node": "Fetch showtimes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch showtimes": {
+      "main": [
+        [
+          {
+            "node": "Build the fact sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build the fact sheet": {
+      "main": [
+        [
+          {
+            "node": "Claude writes the break",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude writes the break": {
+      "main": [
+        [
+          {
+            "node": "Clean the copy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean the copy": {
+      "main": [
+        [
+          {
+            "node": "Voice the break",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice the break": {
+      "main": [
+        [
+          {
+            "node": "Deliver the break",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deliver the break": {
+      "main": [
+        [
+          {
+            "node": "Sign the logbook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Peek at the logbook": {
+      "main": [
+        [
+          {
+            "node": "Read the logbook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read the logbook": {
+      "main": [
+        [
+          {
+            "node": "Respond with the log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Phoenix",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  }
+}

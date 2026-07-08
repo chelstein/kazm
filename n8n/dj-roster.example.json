@@ -1,0 +1,77 @@
+{
+  "_readme": "KAZM DJ Roster. Edit this file in Dropbox and the next break picks up the change — no workflow edits needed. Each DJ: voiceId/ttsModel (ElevenLabs), persona (character only — the engine adds time-of-day delivery, weather modes, anti-hallucination rules), wordRange (spoken length), audioTags (true only for ElevenLabs v3 voices), dropboxPath (the file MegaSeg plays), selfIdName (how the name is SPOKEN), stationIdLine (exact required sign-off, or empty for natural mention).",
+  "djs": {
+    "marcus": {
+      "name": "Marcus Moon",
+      "active": true,
+      "note": "Quiet Storm host — runs on his own dedicated workflow (KAZM Marcus Moon — DJ Brain v2) with MegaSeg playlist control. Listed here for completeness.",
+      "voiceId": "rWyjfFeMZ6PxkHqD3wGC",
+      "ttsModel": "eleven_multilingual_v2",
+      "voiceSettings": {
+        "stability": 0.55,
+        "similarity_boost": 0.75,
+        "style": 0.35,
+        "use_speaker_boost": true
+      },
+      "audioTags": false,
+      "wordRange": [
+        70,
+        90
+      ],
+      "selfIdName": "Marcus Moon",
+      "stationIdLine": "",
+      "dropboxPath": "/Charles Helstein/Quite Storm Show/qsvo.mp3",
+      "persona": "You are writing radio talk breaks for Marcus Moon, the voice of Mellow Mountain Radio in Sedona, Arizona. Marcus is warm, confident, and casually charming — natural, conversational, human, never stiff or announcer-formal. Overnight he settles into his Quiet Storm register: soft, deep, unhurried, a little flirty — warm and smooth like a slow song, never explicit, never sleazy — talking to ONE listener like it is just the two of them awake in the whole valley."
+    },
+    "burt": {
+      "name": "Burt",
+      "active": true,
+      "voiceId": "4YYIPFl9wE5c4L2eu2Gb",
+      "ttsModel": "eleven_multilingual_v2",
+      "voiceSettings": {
+        "stability": 0.5,
+        "similarity_boost": 0.75,
+        "use_speaker_boost": true
+      },
+      "audioTags": false,
+      "wordRange": [
+        70,
+        90
+      ],
+      "selfIdName": "Burt",
+      "stationIdLine": "",
+      "dropboxPath": "/Charles Helstein/DJ Breaks/Burt Break.mp3",
+      "persona": "You are writing radio talk breaks for Burt, a friendly, seasoned radio DJ on Mellow Mountain Radio in Sedona — decades on the dial and comfortable as a well-worn denim jacket. Warm, approachable, and confident. Fun and entertaining without trying too hard. He sounds live, relaxed, and conversational, like he is talking directly to one listener at a time, with natural pacing and short, human pauses. Easy humor that lands soft — a chuckle, not a punchline."
+    },
+    "canyonjack": {
+      "name": "Canyon Jack",
+      "active": true,
+      "voiceId": "Bj9UqZbhQsanLzgalpEG",
+      "ttsModel": "eleven_v3",
+      "audioTags": true,
+      "wordRange": [
+        35,
+        50
+      ],
+      "selfIdName": "Canyon Jack",
+      "stationIdLine": "You're listening to Mellow Mountain Radio!",
+      "dropboxPath": "/Charles Helstein/DJ Breaks/Canyon Jack Break.mp3",
+      "persona": "You are writing short, fun radio breaks for Canyon Jack, a friendly, fun-loving DJ on Mellow Mountain Radio with a slight country accent. He is upbeat, loves hanging out, and has a warm, energetic style — the guy who is always ready to crack a joke and throw a 'heck yeah!' to the listeners. Keep his humor observational and rooted in the facts provided — playful takes on real things, never invented trivia. Let the country warmth come through in word choice and rhythm, not caricature."
+    },
+    "kaley": {
+      "name": "Kaley",
+      "active": true,
+      "voiceId": "FGY2WhTYpPnrIDTdsKH5",
+      "ttsModel": "eleven_v3",
+      "audioTags": true,
+      "wordRange": [
+        35,
+        50
+      ],
+      "selfIdName": "Callie",
+      "stationIdLine": "You're listening to Mellow Mountain Radio!",
+      "dropboxPath": "/Charles Helstein/DJ Breaks/Kaley Break.mp3",
+      "persona": "You are writing short, fun radio breaks for Callie (spelled Kaley off the air, but always written 'Callie' in scripts so it is spoken correctly), a friendly, outgoing, bubbly DJ on Mellow Mountain Radio. Cheerful and energetic with a bit of charm — the bright spot in the listener's day. Sparkling but genuine; enthusiasm that feels real, never forced."
+    }
+  }
+}

@@ -5,6 +5,37 @@ overnight shift, voices it with ElevenLabs, and drops it into rotation. Every
 fact he says — weather, songs, local events — is fetched and verified by the
 workflow *before* the script is written, so nothing is ever hallucinated.
 
+## The DJ Engine (multi-DJ)
+
+Marcus is no longer the only voice. **`kazm-dj-engine.json`** (live n8n workflow
+`KAZM DJ Engine — multi-DJ breaks`, id `YZaIzgSsLen6ldSX`) generates breaks for
+any DJ in the roster using the same verified-facts machinery — weather,
+AzuraCast history, the site's event/concert/festival/movie feeds, website
+spotlights, the variety director, self-ID — while the persona, voice, length,
+and output file come from a per-DJ profile.
+
+- **Roster (the control panel):** `/Charles Helstein/DJ Roster/djs.json` in
+  Dropbox — edit it there and the *next break* picks up the change; no
+  workflow edits. Fields per DJ: `voiceId` + `ttsModel` (ElevenLabs; set
+  `audioTags: true` only for v3 voices — tags like `[laughing]` are kept in
+  the script and performed), `persona` (character only — the engine adds
+  time-of-day delivery, weather modes, and the anti-hallucination hard
+  rules), `wordRange`, `dropboxPath` (the break file MegaSeg plays),
+  `selfIdName` (spelled how it should be *spoken* — e.g. Kaley is written
+  "Callie"), `stationIdLine` (exact required sign-off or empty for a natural
+  mention), `active`. A reference copy lives at `dj-roster.example.json`.
+- **Make a break:** `…/webhook/kazm-dj-now?k=moon-2026&dj=burt`
+  (`canyonjack`, `kaley`, …). The MP3 overwrites that DJ's `dropboxPath` —
+  point a MegaSeg playlist/event at the file exactly like the Quiet Storm
+  DJ VO pattern.
+- **Read a DJ's logbook:** `…/webhook/kazm-dj-log?k=moon-2026&dj=burt`
+  (omit `dj` to list known DJs). Openings/angles/spotlight memory is kept
+  **per DJ** in `staticData.djs`, so each personality varies independently.
+- Marcus's dedicated workflow continues to run the Quiet Storm (it also does
+  MegaSeg playlist control, which is per-show wiring); the engine covers
+  everyone else. When a roster DJ gets a real show slot, add schedule
+  triggers (and optionally clone the playlist-control pattern for that show).
+
 ## Two files in this folder
 
 - **`marcus-moon-dj-brain-v2.json`** — snapshot of the **live production
