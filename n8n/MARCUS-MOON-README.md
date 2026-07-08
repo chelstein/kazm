@@ -90,11 +90,18 @@ break MP3 exists in **MegaSeg's own library** (the engine looks the file up
 in the database by its Mac location, e.g. `…:DJ Breaks:Burt Break.mp3`, and
 needs the record to build the VO playlist row). Until then breaks still
 generate and upload, but no playlist is written and no songs are promised —
-so scripts are never inaccurate during rollout. **One-time setup in MegaSeg:**
-add the three files in `/Charles Helstein/DJ Breaks/` to the MegaSeg library,
-then create 18 Main Events — **Mon–Fri only, Priority checked**, one per hour
-at `:20:13`, inserting the playlist that matches the daypart (the n8n run at
-`:16` stays ~4 minutes ahead, like the Quiet Storm):
+so scripts are never inaccurate during rollout. **One-time setup in MegaSeg —
+DONE (2026-07-07):** the three break files were added to the MegaSeg library
+(uncategorized, so auto-rotation never plays a bare voice break), and all 18
+Main Events were written directly into the events file
+(`MegaSeg copy/Events/Main Events` — a plain-text list; the Priority flag is
+a 🚩 character, day spec `Mon/Tue/Wed/Thu/Fri`, and times use a narrow
+no-break space before AM/PM; original preserved alongside as
+`Main Events backup 2026-07-07 pre DJ VO`). Events are **Mon–Fri only,
+Priority**, one per hour at `:20:13`, inserting the playlist that matches
+the daypart (the n8n run at `:16` stays ~4 minutes ahead, like the Quiet
+Storm). MegaSeg reloads the file on relaunch or via the daily
+`Switch Events: Main Events` at 5:56 AM:
 
 | Playlist to insert   | Event times (M–F, Priority)                                       |
 | -------------------- | ----------------------------------------------------------------- |
