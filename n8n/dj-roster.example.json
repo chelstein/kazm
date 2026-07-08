@@ -50,8 +50,8 @@
       "ttsModel": "eleven_v3",
       "audioTags": true,
       "wordRange": [
-        35,
-        50
+        65,
+        80
       ],
       "selfIdName": "Canyon Jack",
       "stationIdLine": "You're listening to Mellow Mountain Radio!",
@@ -65,8 +65,8 @@
       "ttsModel": "eleven_v3",
       "audioTags": true,
       "wordRange": [
-        35,
-        50
+        65,
+        80
       ],
       "selfIdName": "Callie",
       "stationIdLine": "You're listening to Mellow Mountain Radio!",
