@@ -48,6 +48,20 @@ lead-in row → the on-duty DJ's VO row → the three songs. The DJ can
 back-announce the lead-in, tease the next songs, or bracket both — all
 guaranteed, same as Marcus.
 
+**Per-shift song quota.** Each daypart DJ does **at least 3 song
+lead-in/lead-out breaks per 6-break shift** (only counted when song control
+is armed, so every back-announce/tease is true on air). The director tracks
+`staticData.djs.<id>.shiftSongs` per day: while the quota is outstanding the
+`song` angle carries extra weight (blocked back-to-back but not the full
+3-break memory), and if the shift is running out of breaks the remaining ones
+are **forced** to song leads — simulation over 20k shifts lands exactly 3
+every time, spread out. The other 3 breaks draw from **weather (exact temps
+when it leads), local events, concerts, movies, and the website** — daypart
+DJs never do pure-reflection breaks, and they **may casually reference the
+day and part of day** ("this Tuesday afternoon") though never a precise clock
+time. Before MegaSeg is wired (`voReady` false) shifts are all non-song
+topics — no promises the playout can't keep.
+
 **Self-arming (`voReady`).** Song control only activates for a DJ once their
 break MP3 exists in **MegaSeg's own library** (the engine looks the file up
 in the database by its Mac location, e.g. `…:DJ Breaks:Burt Break.mp3`, and
