@@ -344,6 +344,16 @@ Quiet Storm events set at 11:59:50 PM Mon–Fri, back at 5:56 AM):
 | MegaSeg plays (AZ) | Content | n8n fires | Dropbox file |
 |---|---|---|---|
 | 12:00:02a | Quiet Storm Intro | 11:56p Mon–Fri (`Intro time`) | `Quiet Storm Show Intro V2.mp3` |
+
+The nightly intro also **names the opening song**: the intro chain downloads
+the MegaSeg Database, picks a rule-safe Quiet Storm song (not played in the
+last 90 min, not in this morning's midnight hour, no-repeat memory), tells
+Claude to name it near the end of the intro, and rewrites the MegaSeg
+playlist `Playlists/Quiet Storm Intro` to intro row → that exact song →
+`:load Quiet Storm` — so the named song is guaranteed to start the show.
+(The previous "Intro Outro Bed Music" row in that playlist was dropped so
+the named song truly plays next; the produced static intro/outro V1 files
+remain available in the Quite Storm Show folder.)
 | 1:25:13a | DJ VO break | 1:21a (`Break time strikes`) | `qsvo.mp3` |
 | 2:25:13a | DJ VO break | 2:21a | `qsvo.mp3` |
 | 3:25:13a | DJ VO break | 3:21a | `qsvo.mp3` |

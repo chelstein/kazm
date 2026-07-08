@@ -219,7 +219,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// A short brief for the show intro — same honesty rules as the breaks.\nconst sd = $getWorkflowStaticData('global');\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst hour = phx.getHours();\nconst clock = (((hour + 11) % 12) + 1) + ':' + pad(phx.getMinutes()) + ' ' + (hour >= 12 ? 'PM' : 'AM');\nconst bucket = hour < 5 ? 'overnight' : hour < 7 ? 'early morning' : 'late night';\n\nlet wxLine = 'Weather: unavailable — do not mention it.';\ntry {\n  const o = $('Weather for the intro').first().json.currentobservation;\n  if (o && o.Temp && o.Weather) {\n    const t = parseInt(o.Temp, 10);\n    const c = String(o.Weather).toLowerCase();\n    const vibe = c.includes('rain') ? 'wet and moody' : c.includes('snow') ? 'cold and wintry' : t <= 40 ? 'chilly' : t <= 55 ? 'cool' : t <= 70 ? 'comfortable' : t <= 85 ? 'warm' : 'hot';\n    wxLine = 'Weather conditions: ' + o.Weather + '. Vibe hint: ' + vibe + '. (Weather mention is optional and should stay descriptive — no numbers.)';\n  }\n} catch (e) {}\n\nconst openings = (sd.scripts || []).filter((s) => s.kind === 'intro').slice(-3).map((s) => s.opening).filter(Boolean);\n\nconst system = 'Write ONE fresh intro for Marcus Moon hosting The Quiet Storm on Mellow Mountain Radio.\\n\\nTone & Style:\\n- Warm, relaxed, and confident\\n- Conversational and natural — like talking to one listener, not an audience\\n- Smooth late-night energy with a soft, flirty warmth — never announcer-formal, never sleazy\\n\\nGuidelines:\\n- About 25-30 seconds when read out loud (roughly 65-85 words)\\n- Acknowledge the time of night without stating exact times\\n- Set a calm, intimate mood for slow jams and mellow tracks\\n- The Quiet Storm plays timeless RnB and Soul\\n- No cliches, no hype phrases, no call letters unless it feels organic\\n- Thank the audience for joining and listening to the show\\n- Never say \"stay mellow\"\\n\\nHard rules:\\n- Output ONLY the final DJ script — spoken words only, no stage directions, brackets, emojis, or explanations\\n- Use only the facts provided; never invent weather numbers, events, or names\\n- Do NOT copy the example opening below, and do not start like any recently used opening listed\\n- Never mention being an AI or anything behind the curtain\\n\\nExample of the register (do not reuse its opening): From the Red Rocks to the night sky, this is the Quiet Storm. Two hours of timeless RnB and Soul. Where the groove is gentle and the emotion runs deep. Settle in, breathe easy and let the music find you. You are with Marcus Moon on Mellow Mountain Radio. Let the Quiet Storm make your night.';\n\nconst user = 'Current local time: ' + clock + '. timeBucket: ' + bucket + '.\\n' + wxLine + '\\nRecently used intro openings (do NOT start like any of these): ' + (openings.length ? openings.join(' | ') : 'none yet') + '.';\n\nreturn [{ json: { system, user } }];"
+        "jsCode": "// A short brief for the show intro — same honesty rules as the breaks.\nconst sd = $getWorkflowStaticData('global');\nconst phx = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\nconst pad = (n) => String(n).padStart(2, '0');\nconst hour = phx.getHours();\nconst clock = (((hour + 11) % 12) + 1) + ':' + pad(phx.getMinutes()) + ' ' + (hour >= 12 ? 'PM' : 'AM');\nconst bucket = hour < 5 ? 'overnight' : hour < 7 ? 'early morning' : 'late night';\n\nlet wxLine = 'Weather: unavailable — do not mention it.';\ntry {\n  const o = $('Weather for the intro').first().json.currentobservation;\n  if (o && o.Temp && o.Weather) {\n    const t = parseInt(o.Temp, 10);\n    const c = String(o.Weather).toLowerCase();\n    const vibe = c.includes('rain') ? 'wet and moody' : c.includes('snow') ? 'cold and wintry' : t <= 40 ? 'chilly' : t <= 55 ? 'cool' : t <= 70 ? 'comfortable' : t <= 85 ? 'warm' : 'hot';\n    wxLine = 'Weather conditions: ' + o.Weather + '. Vibe hint: ' + vibe + '. (Weather mention is optional and should stay descriptive — no numbers.)';\n  }\n} catch (e) {}\n\nconst openings = (sd.scripts || []).filter((s) => s.kind === 'intro').slice(-3).map((s) => s.opening).filter(Boolean);\n\nlet songLine = 'Opening song: none listed — do NOT name or promise any specific song.';\ntry {\n  const p = $('Pick the opening song').first().json;\n  if (p.introReady && p.introSong) songLine = 'Opening song — the FIRST song of tonight, it begins the moment this intro ends (locked in, guaranteed): \"' + p.introSong.title + '\" by ' + p.introSong.artist + '.';\n} catch (e) {}\n\nconst system = 'Write ONE fresh intro for Marcus Moon hosting The Quiet Storm on Mellow Mountain Radio.\\n\\nTone & Style:\\n- Warm, relaxed, and confident\\n- Conversational and natural — like talking to one listener, not an audience\\n- Smooth late-night energy with a soft, flirty warmth — never announcer-formal, never sleazy\\n\\nGuidelines:\\n- About 25-30 seconds when read out loud (roughly 65-85 words)\\n- Acknowledge the time of night without stating exact times\\n- Set a calm, intimate mood for slow jams and mellow tracks\\n- The Quiet Storm plays timeless RnB and Soul\\n- No cliches, no hype phrases, no call letters unless it feels organic\\n- Thank the audience for joining and listening to the show\\n- If an opening song is listed, ALWAYS name it — title and artist — near the end of the intro, as the song starting the night, handing off into it as it begins. If none is listed, do not name or promise any song\\n- Never say \"stay mellow\"\\n\\nHard rules:\\n- Output ONLY the final DJ script — spoken words only, no stage directions, brackets, emojis, or explanations\\n- Use only the facts provided; never invent weather numbers, events, or names\\n- Do NOT copy the example opening below, and do not start like any recently used opening listed\\n- Never mention being an AI or anything behind the curtain\\n\\nExample of the register (do not reuse its opening): From the Red Rocks to the night sky, this is the Quiet Storm. Six hours of timeless RnB and Soul. Where the groove is gentle and the emotion runs deep. Settle in, breathe easy and let the music find you. You are with Marcus Moon on Mellow Mountain Radio. Let the Quiet Storm make your night.';\n\nconst user = 'Current local time: ' + clock + '. timeBucket: ' + bucket + '.\\n' + wxLine + '\\n' + songLine + '\\nRecently used intro openings (do NOT start like any of these): ' + (openings.length ? openings.join(' | ') : 'none yet') + '.';\n\nreturn [{ json: { system, user } }];"
       },
       "id": "9b19c047-6fc8-4dfa-9c4d-20fd241af090",
       "name": "Build the intro brief",
@@ -705,6 +705,114 @@
           "name": "Dropbox Connect Ry"
         }
       }
+    },
+    {
+      "name": "Fetch the library (intro)",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        2852,
+        1056
+      ],
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "download",
+        "path": "/Charles Helstein/MegaSegDropbox/MegaSeg copy/Library/MegaSeg Database"
+      },
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "f8123859-69a5-4b58-a500-bdf88bc10343"
+    },
+    {
+      "name": "Pick the opening song",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3032,
+        1056
+      ],
+      "parameters": {
+        "jsCode": "// Pick tonight's opening song — the first thing that plays after the show\n// intro. Rule-safe so MegaSeg never swaps it, then locked into the intro\n// playlist so Marcus can name it with certainty.\nconst sd = $getWorkflowStaticData('global');\nlet raw = '';\ntry { const buf = await this.helpers.getBinaryDataBuffer(0, 'data'); raw = buf.toString('utf8'); } catch (e) {}\nconst parseLP = (s) => {\n  const m = String(s || '').match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{2,4})\\s+(\\d{1,2}):(\\d{2})\\s*(AM|PM)$/i);\n  if (!m) return null;\n  let yr = Number(m[3]); if (yr < 100) yr += 2000;\n  let h = Number(m[4]) % 12; if (/pm/i.test(m[6])) h += 12;\n  return new Date(yr, Number(m[1]) - 1, Number(m[2]), h, Number(m[5]));\n};\nconst now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\n// the song airs just after midnight tonight, so \"yesterday same hour\" for\n// MegaSeg's rule is THIS morning's midnight hour\nconst air = new Date(now.getTime() + 8 * 60 * 1000);\nconst yd = new Date(air); yd.setDate(yd.getDate() - 1);\nsd.scheduledSongs = sd.scheduledSongs || [];\nconst recentIds = new Set(sd.scheduledSongs);\nconst pool = [];\nif (raw.startsWith('D**')) {\n  for (const rec of raw.split('99* ----').slice(1)) {\n    const f = {};\n    for (const line of rec.split('\\n')) { const m = line.match(/^(\\d\\d)\\]\\s?(.*)$/); if (m) f[m[1]] = m[2].replace(/\\r$/, ''); }\n    const cats = String(f['06'] || '').split('/');\n    if (!cats.some((c) => c === '+Quiet Storm' || c === '+Quiet Storm 10')) continue;\n    if (!f['01'] || !f['49'] || !f['45']) continue;\n    pool.push(f);\n  }\n}\nconst safe = pool.filter((f) => {\n  const lp = parseLP(f['15']);\n  if (lp) {\n    if (now - lp < 90 * 60 * 1000) return false;\n    if (lp.getFullYear() === yd.getFullYear() && lp.getMonth() === yd.getMonth() && lp.getDate() === yd.getDate() && lp.getHours() === 0) return false;\n  }\n  return true;\n});\nlet cands = safe.filter((f) => !recentIds.has(f['45']));\nif (!cands.length) cands = safe;\nif (!cands.length) cands = pool;\nconst pick = cands.length ? cands[Math.floor(Math.random() * cands.length)] : null;\nconst toSecs = (t) => { const p = String(t || '').split(':').map(Number); if (p.some(isNaN) || !p.length) return 0; return p.reduce((a, b) => a * 60 + b, 0); };\nconst toRow = (f) => {\n  const cols = new Array(25).fill('');\n  cols[0] = f['01']; cols[1] = f['02'] || ''; cols[3] = f['09'] || '';\n  cols[4] = String(f['06'] || '').split('/')[0];\n  cols[6] = toSecs(f['05']).toFixed(2);\n  cols[11] = f['10'] || ''; cols[20] = f['14'] || '0'; cols[21] = f['15'] || '';\n  cols[22] = '0'; cols[23] = f['49']; cols[24] = f['45'];\n  return cols.join('\\t');\n};\nif (pick) { sd.scheduledSongs.push(pick['45']); if (sd.scheduledSongs.length > 32) sd.scheduledSongs = sd.scheduledSongs.slice(-32); }\nreturn [{ json: { introReady: !!pick, introSong: pick ? { title: pick['01'], artist: pick['02'] || '' } : null, songRow: pick ? toRow(pick) : null } }];"
+      },
+      "id": "d8255980-0b75-41cb-967f-d3fcdf32acc0"
+    },
+    {
+      "name": "Intro playlist ready?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3956,
+        1056
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Pick the opening song').first().json.introReady }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "41c8c31b-83c6-489c-a065-65afe2fb904d"
+    },
+    {
+      "name": "Compose the intro playlist",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4136,
+        976
+      ],
+      "parameters": {
+        "jsCode": "// Rebuild the 'Quiet Storm Intro' MegaSeg playlist: tonight's fresh intro\n// followed by the exact opening song Marcus just named, then the show.\nconst HEADER = 'Name\\tArtist\\tComposer\\tAlbum\\tGenre\\tSize\\tTime\\tDisc Number\\tDisc Count\\tTrack Number\\tTrack Count\\tYear\\tDate Modified\\tDate Added\\tBit Rate\\tSample Rate\\tVolume Adjustment\\tKind\\tEqualizer\\tComments\\tPlays\\tLast Played\\tMy Rating\\tLocation\\tUniqueID';\nconst INTRO_ROW = \"Welcome to the Quiet Storm\\tMarcus Moon\\t\\t\\t\\t\\t6.900000e-6\\t\\t\\t\\t\\t\\t\\t1/13/26 2:06\\u202fAM\\t\\t\\t\\t\\t\\t\\t0\\t\\t0\\tMacintosh HD:Users:mellowmountainradio:MellowMountainRadio Dropbox:Charles Helstein:Quite Storm Show:Quiet Storm Show Intro V2.mp3\\t3851114804-18CF8\";\nconst p = $('Pick the opening song').first().json;\nconst lines = [HEADER, INTRO_ROW];\nif (p.songRow) lines.push(p.songRow);\nlines.push(':load Quiet Storm');\nreturn [{ json: { playlistContent: lines.join('\\n') + '\\n', opening: p.introSong } }];"
+      },
+      "id": "19dac49d-8cdc-4c76-b180-a2e29a9a9ca5"
+    },
+    {
+      "name": "Update the intro playlist",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        4316,
+        976
+      ],
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "upload",
+        "path": "/Charles Helstein/MegaSegDropbox/MegaSeg copy/Playlists/Quiet Storm Intro",
+        "binaryData": false,
+        "fileContent": "={{ $json.playlistContent }}"
+      },
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "id": "1a661c60-11c1-48dc-9e60-487aa509e843"
     }
   ],
   "connections": {
@@ -800,7 +908,7 @@
       "main": [
         [
           {
-            "node": "Build the intro brief",
+            "node": "Fetch the library (intro)",
             "type": "main",
             "index": 0
           }
@@ -844,7 +952,7 @@
       "main": [
         [
           {
-            "node": "Sign the logbook (intro)",
+            "node": "Intro playlist ready?",
             "type": "main",
             "index": 0
           }
@@ -1021,6 +1129,68 @@
         [
           {
             "node": "Weather for the intro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch the library (intro)": {
+      "main": [
+        [
+          {
+            "node": "Pick the opening song",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick the opening song": {
+      "main": [
+        [
+          {
+            "node": "Build the intro brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intro playlist ready?": {
+      "main": [
+        [
+          {
+            "node": "Compose the intro playlist",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sign the logbook (intro)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose the intro playlist": {
+      "main": [
+        [
+          {
+            "node": "Update the intro playlist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update the intro playlist": {
+      "main": [
+        [
+          {
+            "node": "Sign the logbook (intro)",
             "type": "main",
             "index": 0
           }
