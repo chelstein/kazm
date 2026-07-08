@@ -372,6 +372,16 @@ already references. `Intro V2` is legacy and no longer written.)
 | 4:25:13a | DJ VO break | 4:21a | `qsvo.mp3` |
 | 5:55a | Quiet Storm Outro | 5:51a Tue–Sat (`Outro time`) | `Quiet Storm Show IOutro V1.mp3` |
 
+**Break bed music.** The four overnight breaks are bed-mixed too: a random
+short bed from `Quite Storm Show/DJ Bed Music/` (top-level audio files
+only — `DJ Bed 1–4.mp3`; drop more in to expand the rotation) is
+**looped** with ffmpeg to cover the read, using the same envelope as the
+daypart DJs (bed alone 1.5s, one dip, constant 0.16 under the voice, fade
+2.2s after the last word — timing from ElevenLabs timestamps). Fail-safe
+dry-voice fallback as everywhere else. Note the DJ VO playlist still
+inserts a `:cat +Quiet Storm Bed Music` item after the VO, which now
+follows an already-bedded break.
+
 The intro cron runs Mon–Fri **nights** (`56 23 * * 1-5`) and the break cron
 runs the **following mornings**, Tue–Sat (`21 1-4 * * 2-6`), since a weekday
 midnight show straddles the calendar day.
