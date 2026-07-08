@@ -36,7 +36,7 @@ and output file come from a per-DJ profile.
   everyone else.
 
 **Dayparts & rotation song control.** The engine runs the daytime schedule
-itself: a cron (`16 6-23 * * 1-5`, America/Phoenix, **weekdays only** to
+itself: a cron (`21 6-23 * * 1-5`, America/Phoenix, **weekdays only** to
 match the MegaSeg events) fires **once an hour** (6 breaks per shift)
 and `Select the DJ` maps the hour to the on-duty host — **Burt 6a–noon,
 Canyon Jack noon–6p, Kaley 6p–midnight** (hours 6–11 / 12–17 / 18–23). Each
@@ -64,8 +64,8 @@ any library track played in the last **60 minutes**. Freshness preferences
 rule screen cannot. Verified offline: 300 blocks picked against the real
 database, zero rule conflicts.
 
-**Shift-opening intro.** The **first break of each shift** (6:16 AM /
-12:16 PM / 6:16 PM run) is the DJ's welcome: they greet Sedona, introduce
+**Shift-opening intro.** The **first break of each shift** (6:21 AM /
+12:21 PM / 6:21 PM run) is the DJ's welcome: they greet Sedona, introduce
 themselves by name (self-ID forced on, placed early), and tell listeners
 they're aboard for the morning / afternoon / evening. That break never
 leads with a song — the DJ opens with weather, an event, or the website
@@ -98,16 +98,17 @@ Main Events were written directly into the events file
 a 🚩 character, day spec `Mon/Tue/Wed/Thu/Fri`, and times use a narrow
 no-break space before AM/PM; original preserved alongside as
 `Main Events backup 2026-07-07 pre DJ VO`). Events are **Mon–Fri only,
-Priority**, one per hour at `:20:13`, inserting the playlist that matches
-the daypart (the n8n run at `:16` stays ~4 minutes ahead, like the Quiet
-Storm). MegaSeg reloads the file on relaunch or via the daily
+Priority**, one per hour at `:25:13`, inserting the playlist that matches
+the daypart (the n8n run at `:21` stays ~4 minutes ahead, and `:25:13`
+keeps the DJ block clear of the `:22` AZ State News inserts). MegaSeg
+reloads the file on relaunch or via the daily
 `Switch Events: Main Events` at 5:56 AM:
 
 | Playlist to insert   | Event times (M–F, Priority)                                       |
 | -------------------- | ----------------------------------------------------------------- |
-| `Burt DJ VO`         | 6:20:13 AM, 7:20:13, 8:20:13, 9:20:13, 10:20:13, 11:20:13 AM      |
-| `Canyon Jack DJ VO`  | 12:20:13 PM, 1:20:13, 2:20:13, 3:20:13, 4:20:13, 5:20:13 PM       |
-| `Kaley DJ VO`        | 6:20:13 PM, 7:20:13, 8:20:13, 9:20:13, 10:20:13, 11:20:13 PM      |
+| `Burt DJ VO`         | 6:25:13 AM, 7:25:13, 8:25:13, 9:25:13, 10:25:13, 11:25:13 AM      |
+| `Canyon Jack DJ VO`  | 12:25:13 PM, 1:25:13, 2:25:13, 3:25:13, 4:25:13, 5:25:13 PM       |
+| `Kaley DJ VO`        | 6:25:13 PM, 7:25:13, 8:25:13, 9:25:13, 10:25:13, 11:25:13 PM      |
 
 ## Two files in this folder
 
