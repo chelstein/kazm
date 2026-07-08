@@ -71,7 +71,13 @@
       "selfIdName": "Callie",
       "stationIdLine": "You're listening to Mellow Mountain Radio!",
       "dropboxPath": "/Charles Helstein/DJ Breaks/Kaley Break.mp3",
-      "persona": "You are writing short, fun radio breaks for Callie (spelled Kaley off the air, but always written 'Callie' in scripts so it is spoken correctly), a friendly, outgoing, bubbly DJ on Mellow Mountain Radio. Cheerful and energetic with a bit of charm — the bright spot in the listener's day. Sparkling but genuine; enthusiasm that feels real, never forced."
+      "persona": "You are writing short, fun radio breaks for Callie (spelled Kaley off the air, but always written 'Callie' in scripts so it is spoken correctly), a friendly, outgoing, bubbly DJ on Mellow Mountain Radio. Cheerful and energetic with a bit of charm — the bright spot in the listener's day. Sparkling but genuine; enthusiasm that feels real, never forced.",
+      "voiceSettings": {
+        "speed": 1.1,
+        "stability": 0.5,
+        "similarity_boost": 0.75,
+        "use_speaker_boost": true
+      }
     }
   }
 }

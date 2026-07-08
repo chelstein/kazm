@@ -101,8 +101,13 @@ restarts) — the bed opens on its own for 1.5s
 (level 0.40), makes **one smooth 0.6s dip** as the voice comes in,
 holds at a **constant 0.16 under the whole read** (no dynamic
 ducking/pumping), and fades out 2.2s right after the last word;
-timing is computed from the actual voice duration every run. Voice
-levels untouched, 160kbps output. **Fail-safe:** every mix-chain node
+timing comes from ElevenLabs **character timestamps** (the TTS call
+uses `/with-timestamps`, and `Unpack the voice` extracts the exact
+first/last-word times), so the dip and fade hug the real speech, not
+the file length. Voice levels untouched, 160kbps output. Delivery
+itself is tunable per DJ via roster `voiceSettings` — ElevenLabs
+supports `speed` 0.7–1.2 (Kaley runs 1.1), plus stability /
+similarity_boost / style / use_speaker_boost. **Fail-safe:** every mix-chain node
 continues on error and `Choose audio` falls back to the dry voice —
 an empty bed folder, a missing ffmpeg, or a mix error can never stop
 a break. Marcus is not bed-mixed (his show has its own bed-music

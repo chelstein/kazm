@@ -295,7 +295,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://api.elevenlabs.io/v1/text-to-speech/{{ $('Select the DJ').first().json.profile.voiceId }}?output_format=mp3_44100_128",
+        "url": "=https://api.elevenlabs.io/v1/text-to-speech/{{ $('Select the DJ').first().json.profile.voiceId }}/with-timestamps?output_format=mp3_44100_128",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -303,7 +303,7 @@
           "parameters": [
             {
               "name": "Accept",
-              "value": "audio/mpeg"
+              "value": "application/json"
             }
           ]
         },
@@ -311,11 +311,6 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify(Object.assign({ text: $json.script, model_id: $('Select the DJ').first().json.profile.ttsModel }, $('Select the DJ').first().json.profile.voiceSettings ? { voice_settings: $('Select the DJ').first().json.profile.voiceSettings } : {})) }}",
         "options": {
-          "response": {
-            "response": {
-              "responseFormat": "file"
-            }
-          },
           "timeout": 120000
         }
       },
@@ -646,7 +641,7 @@
         560
       ],
       "parameters": {
-        "command": "=V=\"{{ $('Pick a bed').first().json.voiceFile }}\"; B=\"{{ $('Pick a bed').first().json.bedFile }}\"; O=\"{{ $('Pick a bed').first().json.outFile }}\"; DOMIX=\"{{ $('Pick a bed').first().json.doMix }}\"; FF=/home/node/.n8n/bin/ffmpeg; FP=/home/node/.n8n/bin/ffprobe; if [ \"$DOMIX\" = \"true\" ] && [ -s \"$B\" ]; then D=$($FP -v error -show_entries format=duration -of csv=p=0 \"$V\"); BD=$($FP -v error -show_entries format=duration -of csv=p=0 \"$B\"); T=$(awk \"BEGIN{print $D+4.0}\"); FO=$(awk \"BEGIN{print $D+1.8}\"); SS=$(awk \"BEGIN{srand(); m=$BD-$T-2; if (m<0) m=0; printf \\\"%.2f\\\", rand()*m}\"); $FF -y -i \"$V\" -ss \"$SS\" -i \"$B\" -filter_complex \"[0:a]adelay=1500|1500,aformat=sample_rates=44100:channel_layouts=stereo[v];[1:a]aloop=loop=-1:size=2e9,atrim=0:$T,aformat=sample_rates=44100:channel_layouts=stereo,volume='if(lt(t,1.5),0.40,if(lt(t,2.1),0.40-0.24*(t-1.5)/0.6,0.16))':eval=frame[b];[b][v]amix=inputs=2:duration=first:normalize=0,afade=t=in:d=0.8,afade=t=out:st=$FO:d=2.2\" -codec:a libmp3lame -b:a 160k \"$O\" >/tmp/kazm-mix.log 2>&1 && echo \"MIXED ss=$SS\" || { echo MIXFAIL; tail -3 /tmp/kazm-mix.log; cp \"$V\" \"$O\"; }; else cp \"$V\" \"$O\"; echo DRY; fi; rm -f \"$B\""
+        "command": "=V=\"{{ $('Pick a bed').first().json.voiceFile }}\"; B=\"{{ $('Pick a bed').first().json.bedFile }}\"; O=\"{{ $('Pick a bed').first().json.outFile }}\"; DOMIX=\"{{ $('Pick a bed').first().json.doMix }}\"; SS0=\"{{ $('Unpack the voice').first().json.speechStart }}\"; SE=\"{{ $('Unpack the voice').first().json.speechEnd }}\"; FF=/home/node/.n8n/bin/ffmpeg; FP=/home/node/.n8n/bin/ffprobe; if [ \"$DOMIX\" = \"true\" ] && [ -s \"$B\" ]; then BD=$($FP -v error -show_entries format=duration -of csv=p=0 \"$B\"); W=$(awk \"BEGIN{print 1.5+$SS0}\"); DS=$(awk \"BEGIN{d=1.5+$SS0-0.6; if (d<0.3) d=0.3; print d}\"); FO=$(awk \"BEGIN{print 1.5+$SE+0.5}\"); T=$(awk \"BEGIN{print 1.5+$SE+2.8}\"); SS=$(awk \"BEGIN{srand(); m=$BD-$T-2; if (m<0) m=0; printf \\\"%.2f\\\", rand()*m}\"); $FF -y -i \"$V\" -ss \"$SS\" -i \"$B\" -filter_complex \"[0:a]adelay=1500|1500,aformat=sample_rates=44100:channel_layouts=stereo[v];[1:a]aloop=loop=-1:size=2e9,atrim=0:$T,aformat=sample_rates=44100:channel_layouts=stereo,volume='if(lt(t,$DS),0.40,if(lt(t,$W),0.40-0.24*(t-$DS)/($W-$DS),0.16))':eval=frame[b];[b][v]amix=inputs=2:duration=first:normalize=0,afade=t=in:d=0.8,afade=t=out:st=$FO:d=2.2\" -codec:a libmp3lame -b:a 160k \"$O\" >/tmp/kazm-mix.log 2>&1 && echo \"MIXED ss=$SS speech=$SS0-$SE\" || { echo MIXFAIL; tail -3 /tmp/kazm-mix.log; cp \"$V\" \"$O\"; }; else cp \"$V\" \"$O\"; echo DRY; fi; rm -f \"$B\""
       },
       "onError": "continueRegularOutput",
       "id": "55c2cd68-4d38-4110-beec-5186c4ebf815"
@@ -675,9 +670,22 @@
         560
       ],
       "parameters": {
-        "jsCode": "// Use the mixed file when the mix chain produced one; otherwise the dry voice.\nlet mixedFlag = false;\ntry { mixedFlag = String($('Mix the bed').first().json.stdout || '').includes('MIXED'); } catch (e) {}\nlet out = null;\ntry {\n  const m = $('Load the mix').first();\n  if (m && m.binary && m.binary.data) out = { json: { mixed: mixedFlag, bed: $('Pick a bed').first().json.bedName }, binary: m.binary };\n} catch (e) {}\nif (!out) out = { json: { mixed: false }, binary: $('Voice the break').first().binary };\nreturn [out];"
+        "jsCode": "// Use the mixed file when the mix chain produced one; otherwise the dry voice.\nlet mixedFlag = false;\ntry { mixedFlag = String($('Mix the bed').first().json.stdout || '').includes('MIXED'); } catch (e) {}\nlet out = null;\ntry {\n  const m = $('Load the mix').first();\n  if (m && m.binary && m.binary.data) out = { json: { mixed: mixedFlag, bed: $('Pick a bed').first().json.bedName }, binary: m.binary };\n} catch (e) {}\nif (!out) out = { json: { mixed: false }, binary: $('Unpack the voice').first().binary };\nreturn [out];"
       },
       "id": "99e98e4a-1238-49b8-ac72-fd8f6e360d35"
+    },
+    {
+      "name": "Unpack the voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2890,
+        560
+      ],
+      "parameters": {
+        "jsCode": "// Decode the with-timestamps response: audio + exact speech boundaries.\nconst r = $input.first().json;\nif (!r || !r.audio_base64) throw new Error('No audio came back from ElevenLabs');\nconst buf = Buffer.from(r.audio_base64, 'base64');\nconst a = r.alignment || {};\nconst ch = a.characters || [];\nconst st = a.character_start_times_seconds || [];\nconst en = a.character_end_times_seconds || [];\nlet speechStart = 0, speechEnd = 0;\nfor (let i = 0; i < ch.length; i++) { if (String(ch[i]).trim()) { speechStart = st[i] || 0; break; } }\nfor (let i = ch.length - 1; i >= 0; i--) { if (String(ch[i]).trim()) { speechEnd = en[i] || 0; break; } }\nif (!speechEnd) speechEnd = en.length ? en[en.length - 1] : 30;\nreturn [{ json: { speechStart: Math.round(speechStart * 100) / 100, speechEnd: Math.round(speechEnd * 100) / 100 },\n  binary: { data: await this.helpers.prepareBinaryData(buf, 'voice.mp3', 'audio/mpeg') } }];"
+      },
+      "id": "33691b6a-8061-41b9-b01b-a213428e4cbb"
     }
   ],
   "connections": {
@@ -828,7 +836,7 @@
       "main": [
         [
           {
-            "node": "Save the voice",
+            "node": "Unpack the voice",
             "type": "main",
             "index": 0
           }
@@ -1023,6 +1031,17 @@
         [
           {
             "node": "Deliver the break",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpack the voice": {
+      "main": [
+        [
+          {
+            "node": "Save the voice",
             "type": "main",
             "index": 0
           }
