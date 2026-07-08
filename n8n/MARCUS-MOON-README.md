@@ -36,7 +36,8 @@ and output file come from a per-DJ profile.
   everyone else.
 
 **Dayparts & rotation song control.** The engine runs the daytime schedule
-itself: a cron (`16 6-23 * * *`, America/Phoenix) fires **once an hour** (6 breaks per shift)
+itself: a cron (`16 6-23 * * 1-5`, America/Phoenix, **weekdays only** to
+match the MegaSeg events) fires **once an hour** (6 breaks per shift)
 and `Select the DJ` maps the hour to the on-duty host — **Burt 6a–noon,
 Canyon Jack noon–6p, Kaley 6p–midnight** (hours 6–11 / 12–17 / 18–23). Each
 run also downloads the MegaSeg Database and picks **4 songs from the daytime
@@ -63,6 +64,13 @@ any library track played in the last **60 minutes**. Freshness preferences
 rule screen cannot. Verified offline: 300 blocks picked against the real
 database, zero rule conflicts.
 
+**Shift-opening intro.** The **first break of each shift** (6:16 AM /
+12:16 PM / 6:16 PM run) is the DJ's welcome: they greet Sedona, introduce
+themselves by name (self-ID forced on, placed early), and tell listeners
+they're aboard for the morning / afternoon / evening. That break never
+leads with a song — the DJ opens with weather, an event, or the website
+woven into the greeting. Subsequent breaks are normal.
+
 **Per-shift song quota.** Each daypart DJ does **at least 3 song
 lead-in/lead-out breaks per 6-break shift** (only counted when song control
 is armed, so every back-announce/tease is true on air). The director tracks
@@ -84,10 +92,15 @@ needs the record to build the VO playlist row). Until then breaks still
 generate and upload, but no playlist is written and no songs are promised —
 so scripts are never inaccurate during rollout. **One-time setup in MegaSeg:**
 add the three files in `/Charles Helstein/DJ Breaks/` to the MegaSeg library,
-then create Events at `:20:13` each hour inserting the playlist that matches
-the daypart — **"Burt DJ VO"** for the 6:00–11:59 AM hours, **"Canyon Jack
-DJ VO"** for noon–5:59 PM, **"Kaley DJ VO"** for 6:00–11:59 PM (the n8n run
-at `:16` stays ~4 minutes ahead, like the Quiet Storm).
+then create 18 Main Events — **Mon–Fri only, Priority checked**, one per hour
+at `:20:13`, inserting the playlist that matches the daypart (the n8n run at
+`:16` stays ~4 minutes ahead, like the Quiet Storm):
+
+| Playlist to insert   | Event times (M–F, Priority)                                       |
+| -------------------- | ----------------------------------------------------------------- |
+| `Burt DJ VO`         | 6:20:13 AM, 7:20:13, 8:20:13, 9:20:13, 10:20:13, 11:20:13 AM      |
+| `Canyon Jack DJ VO`  | 12:20:13 PM, 1:20:13, 2:20:13, 3:20:13, 4:20:13, 5:20:13 PM       |
+| `Kaley DJ VO`        | 6:20:13 PM, 7:20:13, 8:20:13, 9:20:13, 10:20:13, 11:20:13 PM      |
 
 ## Two files in this folder
 
