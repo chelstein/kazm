@@ -90,6 +90,23 @@ day and part of day** ("this Tuesday afternoon") though never a precise clock
 time. Before MegaSeg is wired (`voReady` false) shifts are all non-song
 topics — no promises the playout can't keep.
 
+**Bed music (no more dry reads).** Daypart breaks are mixed over an
+instrumental bed before delivery: `Voice the break` → save to disk →
+pick a **random bed** from Dropbox **`/Charles Helstein/DJ Beds/`** (drop
+audio files there to change the sound — currently one placeholder synth
+pad, `Test Bed (placeholder).mp3`) → `Mix the bed` runs **ffmpeg**
+(static build self-installed at `/home/node/.n8n/bin/`, survives
+restarts) — bed fades in 1.5s before the voice, **sidechain-ducks**
+under speech (threshold .02, ratio 12, release 500ms), swells back
+after the last word, and fades out 2.2s; timing is computed from the
+actual voice duration every run. Levels: voice untouched, bed 0.32
+pre-duck, 160kbps output. **Fail-safe:** every mix-chain node
+continues on error and `Choose audio` falls back to the dry voice —
+an empty bed folder, a missing ffmpeg, or a mix error can never stop
+a break. Marcus is not bed-mixed (his show has its own bed-music
+category in MegaSeg). Phase 2 (planned): ffmpeg-analyzed intro/outro
+talk-over markers on rotation songs.
+
 **Self-arming (`voReady`).** Song control only activates for a DJ once their
 break MP3 exists in **MegaSeg's own library** (the engine looks the file up
 in the database by its Mac location, e.g. `…:DJ Breaks:Burt Break.mp3`, and

@@ -546,6 +546,138 @@
           "name": "Dropbox Connect Ry"
         }
       }
+    },
+    {
+      "name": "Save the voice",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2980,
+        560
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/tmp/kazm-vo-{{ $('Select the DJ').first().json.djId }}.mp3",
+        "dataPropertyName": "data"
+      },
+      "id": "471a4039-38bb-41d4-ad6a-3583e327a1e4"
+    },
+    {
+      "name": "List the beds",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        3160,
+        560
+      ],
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "folder",
+        "operation": "list",
+        "path": "/Charles Helstein/DJ Beds",
+        "returnAll": true
+      },
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "id": "e1134e4f-f100-41aa-813c-70f0cfb5b594"
+    },
+    {
+      "name": "Pick a bed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3340,
+        560
+      ],
+      "parameters": {
+        "jsCode": "// Pick a random bed from the DJ Beds folder; daypart DJs only.\nconst djId = $('Select the DJ').first().json.djId;\nconst DAYPART_DJS = ['burt', 'canyonjack', 'kaley'];\nconst vf = '/tmp/kazm-vo-' + djId + '.mp3';\nconst bf = '/tmp/kazm-bed-' + djId + '.mp3';\nconst of = '/tmp/kazm-mix-' + djId + '.mp3';\nlet beds = [];\ntry {\n  beds = $input.all().map((i) => i.json).filter((j) => j && j.name && /\\.(mp3|m4a|wav|aif|aiff)$/i.test(j.name) && j.type !== 'folder' && j['.tag'] !== 'folder');\n} catch (e) {}\nconst pick = beds.length ? beds[Math.floor(Math.random() * beds.length)] : null;\nconst doMix = DAYPART_DJS.includes(djId) && !!pick;\nreturn [{ json: { doMix, bedPath: pick ? (pick.path_display || pick.path_lower || ('/Charles Helstein/DJ Beds/' + pick.name)) : '', bedName: pick ? pick.name : null, voiceFile: vf, bedFile: bf, outFile: of } }];"
+      },
+      "id": "1556a677-239c-4543-a723-f5311adc5c2b"
+    },
+    {
+      "name": "Fetch the bed",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        3520,
+        560
+      ],
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "download",
+        "path": "={{ $json.bedPath }}"
+      },
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "id": "4dfe05fa-bbc2-4bdc-a78f-1f06e8977e2c"
+    },
+    {
+      "name": "Save the bed",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        3700,
+        560
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Pick a bed').first().json.bedFile }}",
+        "dataPropertyName": "data"
+      },
+      "onError": "continueRegularOutput",
+      "id": "c6906e08-5acf-4c2c-bb00-fd9fbc252e88"
+    },
+    {
+      "name": "Mix the bed",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3880,
+        560
+      ],
+      "parameters": {
+        "command": "=V=\"{{ $('Pick a bed').first().json.voiceFile }}\"; B=\"{{ $('Pick a bed').first().json.bedFile }}\"; O=\"{{ $('Pick a bed').first().json.outFile }}\"; DOMIX=\"{{ $('Pick a bed').first().json.doMix }}\"; FF=/home/node/.n8n/bin/ffmpeg; FP=/home/node/.n8n/bin/ffprobe; if [ \"$DOMIX\" = \"true\" ] && [ -s \"$B\" ]; then D=$($FP -v error -show_entries format=duration -of csv=p=0 \"$V\"); T=$(awk \"BEGIN{print $D+4.0}\"); FO=$(awk \"BEGIN{print $D+1.8}\"); $FF -y -i \"$V\" -i \"$B\" -filter_complex \"[0:a]adelay=1500|1500,apad=pad_dur=2.5,aformat=sample_rates=44100:channel_layouts=stereo,asplit=2[v1][v2];[1:a]aloop=loop=-1:size=2e9,atrim=0:$T,volume=0.32,aformat=sample_rates=44100:channel_layouts=stereo[b];[b][v1]sidechaincompress=threshold=0.02:ratio=12:attack=25:release=500[duck];[duck][v2]amix=inputs=2:duration=first:normalize=0,afade=t=in:d=1.2,afade=t=out:st=$FO:d=2.2\" -codec:a libmp3lame -b:a 160k \"$O\" >/tmp/kazm-mix.log 2>&1 && echo MIXED || { echo MIXFAIL; tail -3 /tmp/kazm-mix.log; cp \"$V\" \"$O\"; }; else cp \"$V\" \"$O\"; echo DRY; fi; rm -f \"$B\""
+      },
+      "onError": "continueRegularOutput",
+      "id": "55c2cd68-4d38-4110-beec-5186c4ebf815"
+    },
+    {
+      "name": "Load the mix",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        4060,
+        560
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $('Pick a bed').first().json.outFile }}"
+      },
+      "onError": "continueRegularOutput",
+      "id": "ae8cb2de-89a3-4608-9648-18da2884d107"
+    },
+    {
+      "name": "Choose audio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4240,
+        560
+      ],
+      "parameters": {
+        "jsCode": "// Use the mixed file when the mix chain produced one; otherwise the dry voice.\nlet mixedFlag = false;\ntry { mixedFlag = String($('Mix the bed').first().json.stdout || '').includes('MIXED'); } catch (e) {}\nlet out = null;\ntry {\n  const m = $('Load the mix').first();\n  if (m && m.binary && m.binary.data) out = { json: { mixed: mixedFlag, bed: $('Pick a bed').first().json.bedName }, binary: m.binary };\n} catch (e) {}\nif (!out) out = { json: { mixed: false }, binary: $('Voice the break').first().binary };\nreturn [out];"
+      },
+      "id": "99e98e4a-1238-49b8-ac72-fd8f6e360d35"
     }
   ],
   "connections": {
@@ -696,7 +828,7 @@
       "main": [
         [
           {
-            "node": "Deliver the break",
+            "node": "Save the voice",
             "type": "main",
             "index": 0
           }
@@ -803,6 +935,94 @@
         [
           {
             "node": "Sign the logbook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the voice": {
+      "main": [
+        [
+          {
+            "node": "List the beds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List the beds": {
+      "main": [
+        [
+          {
+            "node": "Pick a bed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick a bed": {
+      "main": [
+        [
+          {
+            "node": "Fetch the bed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch the bed": {
+      "main": [
+        [
+          {
+            "node": "Save the bed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the bed": {
+      "main": [
+        [
+          {
+            "node": "Mix the bed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mix the bed": {
+      "main": [
+        [
+          {
+            "node": "Load the mix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load the mix": {
+      "main": [
+        [
+          {
+            "node": "Choose audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose audio": {
+      "main": [
+        [
+          {
+            "node": "Deliver the break",
             "type": "main",
             "index": 0
           }
