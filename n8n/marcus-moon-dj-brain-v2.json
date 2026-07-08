@@ -246,7 +246,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.elevenlabs.io/v1/text-to-speech/rWyjfFeMZ6PxkHqD3wGC?output_format=mp3_44100_128",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/rWyjfFeMZ6PxkHqD3wGC/with-timestamps?output_format=mp3_44100_128",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -254,7 +254,7 @@
           "parameters": [
             {
               "name": "Accept",
-              "value": "audio/mpeg"
+              "value": "application/json"
             }
           ]
         },
@@ -262,11 +262,6 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ text: $json.script, model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.55, similarity_boost: 0.75, style: 0.35, use_speaker_boost: true } }) }}",
         "options": {
-          "response": {
-            "response": {
-              "responseFormat": "file"
-            }
-          },
           "timeout": 120000
         }
       },
@@ -291,7 +286,7 @@
     {
       "parameters": {
         "authentication": "oAuth2",
-        "path": "/Charles Helstein/Quite Storm Show/Quiet Storm Show Intro V2.mp3",
+        "path": "/Charles Helstein/Quite Storm Show/Quiet Storm Show Intro V1.mp3",
         "binaryData": true
       },
       "id": "ae441903-6ff3-4303-a516-341a1cf7e9b9",
@@ -739,7 +734,7 @@
         1056
       ],
       "parameters": {
-        "jsCode": "// Pick tonight's opening song — the first thing that plays after the show\n// intro. Rule-safe so MegaSeg never swaps it, then locked into the intro\n// playlist so Marcus can name it with certainty.\nconst sd = $getWorkflowStaticData('global');\nlet raw = '';\ntry { const buf = await this.helpers.getBinaryDataBuffer(0, 'data'); raw = buf.toString('utf8'); } catch (e) {}\nconst parseLP = (s) => {\n  const m = String(s || '').match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{2,4})\\s+(\\d{1,2}):(\\d{2})\\s*(AM|PM)$/i);\n  if (!m) return null;\n  let yr = Number(m[3]); if (yr < 100) yr += 2000;\n  let h = Number(m[4]) % 12; if (/pm/i.test(m[6])) h += 12;\n  return new Date(yr, Number(m[1]) - 1, Number(m[2]), h, Number(m[5]));\n};\nconst now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\n// the song airs just after midnight tonight, so \"yesterday same hour\" for\n// MegaSeg's rule is THIS morning's midnight hour\nconst air = new Date(now.getTime() + 8 * 60 * 1000);\nconst yd = new Date(air); yd.setDate(yd.getDate() - 1);\nsd.scheduledSongs = sd.scheduledSongs || [];\nconst recentIds = new Set(sd.scheduledSongs);\nconst pool = [];\nif (raw.startsWith('D**')) {\n  for (const rec of raw.split('99* ----').slice(1)) {\n    const f = {};\n    for (const line of rec.split('\\n')) { const m = line.match(/^(\\d\\d)\\]\\s?(.*)$/); if (m) f[m[1]] = m[2].replace(/\\r$/, ''); }\n    const cats = String(f['06'] || '').split('/');\n    if (!cats.some((c) => c === '+Quiet Storm' || c === '+Quiet Storm 10')) continue;\n    if (!f['01'] || !f['49'] || !f['45']) continue;\n    pool.push(f);\n  }\n}\nconst safe = pool.filter((f) => {\n  const lp = parseLP(f['15']);\n  if (lp) {\n    if (now - lp < 90 * 60 * 1000) return false;\n    if (lp.getFullYear() === yd.getFullYear() && lp.getMonth() === yd.getMonth() && lp.getDate() === yd.getDate() && lp.getHours() === 0) return false;\n  }\n  return true;\n});\nlet cands = safe.filter((f) => !recentIds.has(f['45']));\nif (!cands.length) cands = safe;\nif (!cands.length) cands = pool;\nconst pick = cands.length ? cands[Math.floor(Math.random() * cands.length)] : null;\nconst toSecs = (t) => { const p = String(t || '').split(':').map(Number); if (p.some(isNaN) || !p.length) return 0; return p.reduce((a, b) => a * 60 + b, 0); };\nconst toRow = (f) => {\n  const cols = new Array(25).fill('');\n  cols[0] = f['01']; cols[1] = f['02'] || ''; cols[3] = f['09'] || '';\n  cols[4] = String(f['06'] || '').split('/')[0];\n  cols[6] = toSecs(f['05']).toFixed(2);\n  cols[11] = f['10'] || ''; cols[20] = f['14'] || '0'; cols[21] = f['15'] || '';\n  cols[22] = '0'; cols[23] = f['49']; cols[24] = f['45'];\n  return cols.join('\\t');\n};\nif (pick) { sd.scheduledSongs.push(pick['45']); if (sd.scheduledSongs.length > 32) sd.scheduledSongs = sd.scheduledSongs.slice(-32); }\nreturn [{ json: { introReady: !!pick, introSong: pick ? { title: pick['01'], artist: pick['02'] || '' } : null, songRow: pick ? toRow(pick) : null } }];"
+        "jsCode": "// Pick tonight's opening song — the first thing that plays after the show\n// intro. Rule-safe so MegaSeg never swaps it, then locked into the intro\n// playlist so Marcus can name it with certainty.\nconst sd = $getWorkflowStaticData('global');\nlet raw = '';\ntry { const buf = await this.helpers.getBinaryDataBuffer(0, 'data'); raw = buf.toString('utf8'); } catch (e) {}\nconst parseLP = (s) => {\n  const m = String(s || '').match(/^(\\d{1,2})\\/(\\d{1,2})\\/(\\d{2,4})\\s+(\\d{1,2}):(\\d{2})\\s*(AM|PM)$/i);\n  if (!m) return null;\n  let yr = Number(m[3]); if (yr < 100) yr += 2000;\n  let h = Number(m[4]) % 12; if (/pm/i.test(m[6])) h += 12;\n  return new Date(yr, Number(m[1]) - 1, Number(m[2]), h, Number(m[5]));\n};\nconst now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' }));\n// the song airs just after midnight tonight, so \"yesterday same hour\" for\n// MegaSeg's rule is THIS morning's midnight hour\nconst air = new Date(now.getTime() + 8 * 60 * 1000);\nconst yd = new Date(air); yd.setDate(yd.getDate() - 1);\nsd.scheduledSongs = sd.scheduledSongs || [];\nconst recentIds = new Set(sd.scheduledSongs);\nconst INTRO_SUFFIX = ':Quite Storm Show:Quiet Storm Show Intro V1.mp3';\nlet introRec = null;\nconst pool = [];\nif (raw.startsWith('D**')) {\n  for (const rec of raw.split('99* ----').slice(1)) {\n    const f = {};\n    for (const line of rec.split('\\n')) { const m = line.match(/^(\\d\\d)\\]\\s?(.*)$/); if (m) f[m[1]] = m[2].replace(/\\r$/, ''); }\n    if (f['49'] && f['49'].endsWith(INTRO_SUFFIX)) introRec = f;\n    const cats = String(f['06'] || '').split('/');\n    if (!cats.some((c) => c === '+Quiet Storm' || c === '+Quiet Storm 10')) continue;\n    if (!f['01'] || !f['49'] || !f['45']) continue;\n    pool.push(f);\n  }\n}\nconst safe = pool.filter((f) => {\n  const lp = parseLP(f['15']);\n  if (lp) {\n    if (now - lp < 90 * 60 * 1000) return false;\n    if (lp.getFullYear() === yd.getFullYear() && lp.getMonth() === yd.getMonth() && lp.getDate() === yd.getDate() && lp.getHours() === 0) return false;\n  }\n  return true;\n});\nlet cands = safe.filter((f) => !recentIds.has(f['45']));\nif (!cands.length) cands = safe;\nif (!cands.length) cands = pool;\nconst pick = cands.length ? cands[Math.floor(Math.random() * cands.length)] : null;\nconst toSecs = (t) => { const p = String(t || '').split(':').map(Number); if (p.some(isNaN) || !p.length) return 0; return p.reduce((a, b) => a * 60 + b, 0); };\nconst toRow = (f) => {\n  const cols = new Array(25).fill('');\n  cols[0] = f['01']; cols[1] = f['02'] || ''; cols[3] = f['09'] || '';\n  cols[4] = String(f['06'] || '').split('/')[0];\n  cols[6] = toSecs(f['05']).toFixed(2);\n  cols[11] = f['10'] || ''; cols[20] = f['14'] || '0'; cols[21] = f['15'] || '';\n  cols[22] = '0'; cols[23] = f['49']; cols[24] = f['45'];\n  return cols.join('\\t');\n};\nif (pick) { sd.scheduledSongs.push(pick['45']); if (sd.scheduledSongs.length > 32) sd.scheduledSongs = sd.scheduledSongs.slice(-32); }\nconst FALLBACK_INTRO_ROW = ['Quiet Storm Show Intro V1','','','','','','32.20','','','','','','','','','','','','','','0','','0','Macintosh HD:Users:mellowmountainradio:MellowMountainRadio Dropbox:Charles Helstein:Quite Storm Show:Quiet Storm Show Intro V1.mp3','3845385419-18C94'].join('\\t');\nreturn [{ json: { introReady: !!pick, introSong: pick ? { title: pick['01'], artist: pick['02'] || '' } : null, songRow: pick ? toRow(pick) : null, introRow: introRec ? toRow(introRec) : FALLBACK_INTRO_ROW } }];"
       },
       "id": "d8255980-0b75-41cb-967f-d3fcdf32acc0"
     },
@@ -784,7 +779,7 @@
         976
       ],
       "parameters": {
-        "jsCode": "// Rebuild the 'Quiet Storm Intro' MegaSeg playlist: tonight's fresh intro\n// followed by the exact opening song Marcus just named, then the show.\nconst HEADER = 'Name\\tArtist\\tComposer\\tAlbum\\tGenre\\tSize\\tTime\\tDisc Number\\tDisc Count\\tTrack Number\\tTrack Count\\tYear\\tDate Modified\\tDate Added\\tBit Rate\\tSample Rate\\tVolume Adjustment\\tKind\\tEqualizer\\tComments\\tPlays\\tLast Played\\tMy Rating\\tLocation\\tUniqueID';\nconst INTRO_ROW = \"Welcome to the Quiet Storm\\tMarcus Moon\\t\\t\\t\\t\\t6.900000e-6\\t\\t\\t\\t\\t\\t\\t1/13/26 2:06\\u202fAM\\t\\t\\t\\t\\t\\t\\t0\\t\\t0\\tMacintosh HD:Users:mellowmountainradio:MellowMountainRadio Dropbox:Charles Helstein:Quite Storm Show:Quiet Storm Show Intro V2.mp3\\t3851114804-18CF8\";\nconst p = $('Pick the opening song').first().json;\nconst lines = [HEADER, INTRO_ROW];\nif (p.songRow) lines.push(p.songRow);\nlines.push(':load Quiet Storm');\nreturn [{ json: { playlistContent: lines.join('\\n') + '\\n', opening: p.introSong } }];"
+        "jsCode": "// Rebuild the 'Quiet Storm Intro' MegaSeg playlist: tonight's fresh intro\n// followed by the exact opening song Marcus just named, then the show.\nconst HEADER = 'Name\\tArtist\\tComposer\\tAlbum\\tGenre\\tSize\\tTime\\tDisc Number\\tDisc Count\\tTrack Number\\tTrack Count\\tYear\\tDate Modified\\tDate Added\\tBit Rate\\tSample Rate\\tVolume Adjustment\\tKind\\tEqualizer\\tComments\\tPlays\\tLast Played\\tMy Rating\\tLocation\\tUniqueID';\nconst INTRO_ROW = $('Pick the opening song').first().json.introRow;\nconst p = $('Pick the opening song').first().json;\nconst lines = [HEADER, INTRO_ROW];\nif (p.songRow) lines.push(p.songRow);\nlines.push(':load Quiet Storm');\nreturn [{ json: { playlistContent: lines.join('\\n') + '\\n', opening: p.introSong } }];"
       },
       "id": "19dac49d-8cdc-4c76-b180-a2e29a9a9ca5"
     },
@@ -813,6 +808,117 @@
       "maxTries": 3,
       "waitBetweenTries": 5000,
       "id": "1a661c60-11c1-48dc-9e60-487aa509e843"
+    },
+    {
+      "name": "Unpack the intro voice",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3702,
+        1176
+      ],
+      "parameters": {
+        "jsCode": "// Decode the with-timestamps response: audio + exact speech boundaries.\nconst r = $input.first().json;\nif (!r || !r.audio_base64) throw new Error('No audio came back from ElevenLabs');\nconst buf = Buffer.from(r.audio_base64, 'base64');\nconst a = r.alignment || {};\nconst ch = a.characters || [];\nconst st = a.character_start_times_seconds || [];\nconst en = a.character_end_times_seconds || [];\nlet speechStart = 0, speechEnd = 0;\nfor (let i = 0; i < ch.length; i++) { if (String(ch[i]).trim()) { speechStart = st[i] || 0; break; } }\nfor (let i = ch.length - 1; i >= 0; i--) { if (String(ch[i]).trim()) { speechEnd = en[i] || 0; break; } }\nif (!speechEnd) speechEnd = en.length ? en[en.length - 1] : 28;\nreturn [{ json: { speechStart: Math.round(speechStart * 100) / 100, speechEnd: Math.round(speechEnd * 100) / 100 },\n  binary: { data: await this.helpers.prepareBinaryData(buf, 'introvoice.mp3', 'audio/mpeg') } }];"
+      },
+      "id": "81aff652-c61e-4f8f-b158-d941bcd59bd8"
+    },
+    {
+      "name": "Save the intro voice",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        3852,
+        1176
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "/tmp/kazm-introvo.mp3",
+        "dataPropertyName": "data"
+      },
+      "id": "79b07e6f-0a9b-4ef0-a466-56e6175f3307"
+    },
+    {
+      "name": "Fetch the intro bed",
+      "type": "n8n-nodes-base.dropbox",
+      "typeVersion": 1,
+      "position": [
+        4002,
+        1176
+      ],
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "download",
+        "path": "/Charles Helstein/Quite Storm Show/Main Moments In Love.mp3"
+      },
+      "credentials": {
+        "dropboxOAuth2Api": {
+          "id": "52dunp2MWkL9Vc2m",
+          "name": "Dropbox Connect Ry"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "id": "f2e9479c-fb93-4c71-80cc-47452a0f449f"
+    },
+    {
+      "name": "Save the intro bed",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        4152,
+        1176
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "/tmp/kazm-introbed.mp3",
+        "dataPropertyName": "data"
+      },
+      "onError": "continueRegularOutput",
+      "id": "6bc1f41e-a21a-4cd1-84d8-a2a33d012cfa"
+    },
+    {
+      "name": "Mix the intro",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        4302,
+        1176
+      ],
+      "parameters": {
+        "command": "=V=/tmp/kazm-introvo.mp3; B=/tmp/kazm-introbed.mp3; O=/tmp/kazm-intromix.mp3; SE=\"{{ $('Unpack the intro voice').first().json.speechEnd }}\"; FF=/home/node/.n8n/bin/ffmpeg; if [ -s \"$B\" ]; then E=$(awk \"BEGIN{print 3.0+$SE+0.3}\"); E2=$(awk \"BEGIN{print 3.0+$SE+1.5}\"); T=$(awk \"BEGIN{print 3.0+$SE+4.0}\"); FST=$(awk \"BEGIN{print 3.0+$SE+1.2}\"); $FF -y -i \"$V\" -i \"$B\" -filter_complex \"[0:a]adelay=3000|3000,aformat=sample_rates=44100:channel_layouts=stereo[v];[1:a]atrim=0:$T,aformat=sample_rates=44100:channel_layouts=stereo,volume='if(lt(t,2.4),0.50,if(lt(t,3.0),0.50-0.33*(t-2.4)/0.6,if(lt(t,$E),0.17,if(lt(t,$E2),0.17+0.28*(t-$E)/1.2,0.45))))':eval=frame[b];[b][v]amix=inputs=2:duration=first:normalize=0,afade=t=in:d=1.0,afade=t=out:st=$FST:d=2.8\" -codec:a libmp3lame -b:a 192k \"$O\" >/tmp/kazm-intromix.log 2>&1 && echo MIXED || { echo MIXFAIL; tail -3 /tmp/kazm-intromix.log; cp \"$V\" \"$O\"; }; else cp \"$V\" \"$O\"; echo DRY; fi; rm -f \"$B\""
+      },
+      "onError": "continueRegularOutput",
+      "id": "7143f2e2-afe6-4f67-935c-29b73d8abd07"
+    },
+    {
+      "name": "Load the intro mix",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        4452,
+        1176
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "/tmp/kazm-intromix.mp3"
+      },
+      "onError": "continueRegularOutput",
+      "id": "05d505c7-41f0-4250-a19a-587f6da01900"
+    },
+    {
+      "name": "Choose intro audio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4602,
+        1176
+      ],
+      "parameters": {
+        "jsCode": "// Use the bed-mixed intro when the mix produced one; otherwise the dry voice.\nlet out = null;\ntry {\n  const m = $('Load the intro mix').first();\n  if (m && m.binary && m.binary.data) out = { json: { mixed: true }, binary: m.binary };\n} catch (e) {}\nif (!out) out = { json: { mixed: false }, binary: $('Unpack the intro voice').first().binary };\nreturn [out];"
+      },
+      "id": "6c43d333-a5fa-4534-ba41-1b0297988b49"
     }
   ],
   "connections": {
@@ -941,7 +1047,7 @@
       "main": [
         [
           {
-            "node": "Quiet Storm Intro",
+            "node": "Unpack the intro voice",
             "type": "main",
             "index": 0
           }
@@ -1191,6 +1297,83 @@
         [
           {
             "node": "Sign the logbook (intro)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unpack the intro voice": {
+      "main": [
+        [
+          {
+            "node": "Save the intro voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the intro voice": {
+      "main": [
+        [
+          {
+            "node": "Fetch the intro bed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch the intro bed": {
+      "main": [
+        [
+          {
+            "node": "Save the intro bed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the intro bed": {
+      "main": [
+        [
+          {
+            "node": "Mix the intro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mix the intro": {
+      "main": [
+        [
+          {
+            "node": "Load the intro mix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load the intro mix": {
+      "main": [
+        [
+          {
+            "node": "Choose intro audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose intro audio": {
+      "main": [
+        [
+          {
+            "node": "Quiet Storm Intro",
             "type": "main",
             "index": 0
           }

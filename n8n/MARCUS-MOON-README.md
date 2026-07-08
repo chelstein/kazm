@@ -343,17 +343,26 @@ Quiet Storm events set at 11:59:50 PM Mon–Fri, back at 5:56 AM):
 
 | MegaSeg plays (AZ) | Content | n8n fires | Dropbox file |
 |---|---|---|---|
-| 12:00:02a | Quiet Storm Intro | 11:56p Mon–Fri (`Intro time`) | `Quiet Storm Show Intro V2.mp3` |
+| 12:00:02a | Quiet Storm Intro | 11:56p Mon–Fri (`Intro time`) | `Quiet Storm Show Intro V1.mp3` |
 
-The nightly intro also **names the opening song**: the intro chain downloads
+The nightly intro is a **fully produced show open**: the voice is rendered
+via ElevenLabs `/with-timestamps`, then ffmpeg on the n8n host mixes it over
+the **"Main Moments In Love.mp3"** bed (bed alone ~3s, one smooth dip as
+Marcus enters, constant under the read, swells back after his last word,
+rides out ~4s) and the finished piece saves to
+**`Quite Storm Show/Quiet Storm Show Intro V1.mp3`** — that's the file to
+reference in MegaSeg. Fail-safe: if the bed fetch or mix fails, the dry
+voice ships instead. It also **names the opening song**: the intro chain downloads
 the MegaSeg Database, picks a rule-safe Quiet Storm song (not played in the
 last 90 min, not in this morning's midnight hour, no-repeat memory), tells
 Claude to name it near the end of the intro, and rewrites the MegaSeg
 playlist `Playlists/Quiet Storm Intro` to intro row → that exact song →
 `:load Quiet Storm` — so the named song is guaranteed to start the show.
 (The previous "Intro Outro Bed Music" row in that playlist was dropped so
-the named song truly plays next; the produced static intro/outro V1 files
-remain available in the Quite Storm Show folder.)
+the named song truly plays next. The one-off produced intro at V1 is now
+overwritten nightly by design; the produced outro at
+`Quiet Storm Show IOutro V1.mp3` remains static. `Intro V2` is legacy and
+no longer written.)
 | 1:25:13a | DJ VO break | 1:21a (`Break time strikes`) | `qsvo.mp3` |
 | 2:25:13a | DJ VO break | 2:21a | `qsvo.mp3` |
 | 3:25:13a | DJ VO break | 3:21a | `qsvo.mp3` |
