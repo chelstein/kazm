@@ -97,11 +97,12 @@ audio files there to change the sound — currently `70s Vintage Rock
 Main.mp3`; each break also drops in at a random spot in the bed so
 repeats never sound identical) → `Mix the bed` runs **ffmpeg**
 (static build self-installed at `/home/node/.n8n/bin/`, survives
-restarts) — bed fades in 1.5s before the voice, **sidechain-ducks**
-under speech (threshold .02, ratio 12, release 500ms), swells back
-after the last word, and fades out 2.2s; timing is computed from the
-actual voice duration every run. Levels: voice untouched, bed 0.32
-pre-duck, 160kbps output. **Fail-safe:** every mix-chain node
+restarts) — the bed opens on its own for 1.5s
+(level 0.40), makes **one smooth 0.6s dip** as the voice comes in,
+holds at a **constant 0.16 under the whole read** (no dynamic
+ducking/pumping), and fades out 2.2s right after the last word;
+timing is computed from the actual voice duration every run. Voice
+levels untouched, 160kbps output. **Fail-safe:** every mix-chain node
 continues on error and `Choose audio` falls back to the dry voice —
 an empty bed folder, a missing ffmpeg, or a mix error can never stop
 a break. Marcus is not bed-mixed (his show has its own bed-music
