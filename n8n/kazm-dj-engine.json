@@ -422,7 +422,7 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "16,36 6-23 * * *"
+              "expression": "16 6-23 * * *"
             }
           ]
         }

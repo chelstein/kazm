@@ -36,7 +36,7 @@ and output file come from a per-DJ profile.
   everyone else.
 
 **Dayparts & rotation song control.** The engine runs the daytime schedule
-itself: a cron (`16,36 6-23 * * *`, America/Phoenix) fires **twice an hour**
+itself: a cron (`16 6-23 * * *`, America/Phoenix) fires **once an hour** (6 breaks per shift)
 and `Select the DJ` maps the hour to the on-duty host — **Burt 6a–noon,
 Canyon Jack noon–6p, Kaley 6p–midnight** (hours 6–11 / 12–17 / 18–23). Each
 run also downloads the MegaSeg Database and picks **4 songs from the daytime
@@ -55,9 +55,9 @@ needs the record to build the VO playlist row). Until then breaks still
 generate and upload, but no playlist is written and no songs are promised —
 so scripts are never inaccurate during rollout. **One-time setup in MegaSeg:**
 add the three files in `/Charles Helstein/DJ Breaks/` to the MegaSeg library,
-then create Events inserting playlist **"Daytime DJ VO"** at `:20:13` and
-`:40:13` each hour, 6:00 AM–11:59 PM (the n8n runs at `:16`/`:36` stay ~4
-minutes ahead, like the Quiet Storm).
+then create Events inserting playlist **"Daytime DJ VO"** at `:20:13` each
+hour, 6:00 AM–11:59 PM (the n8n run at `:16` stays ~4 minutes ahead, like
+the Quiet Storm).
 
 ## Two files in this folder
 
